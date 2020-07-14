@@ -1,2 +1,2 @@
 # GPA
-GPU Performance Advisor
+**G**PU **P**erformance **A**dvisor

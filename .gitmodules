@@ -1,0 +1,9 @@
+[submodule "hpctoolkit"]
+	path = hpctoolkit
+	url = git@github.com:HPCToolkit/hpctoolkit.git
+[submodule "dyninst"]
+	path = dyninst
+	url = git@github.com:mxz297/dyninst.git
+[submodule "GPA-Benchmark"]
+	path = GPA-Benchmark
+	url = git@github.com:Jokeren/GPA-Benchmark.git

@@ -42,7 +42,8 @@ cd $SOURCE_DIR
 cd hpctoolkit
 mkdir build
 cd build
-../configure --prefix=$DIR/hpctoolkit --with-cuda=$CUDA_PATH --with-cupti=$CUDA_PATH --with-gpu-patch=$DIR/gpu-patch --with-spack=$S
+../configure --prefix=$DIR/hpctoolkit --with-cuda=$CUDA_PATH \
+  --with-cupti=$CUDA_PATH --with-gpu-patch=$DIR/gpu-patch --with-spack=$S
 make install -j8
 
 echo "Install in "$DIR"/hpctoolkit" 

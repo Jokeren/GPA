@@ -1,0 +1,48 @@
+#!/bin/bash
+
+usage()
+{
+    cat <<EOF
+Usage:
+    gpa [profiling options] [executable] [executable options]
+    profiling options:
+    -h help
+    -v output logs in gpa.log
+EOF
+    exit 0
+}
+
+GPA_EXEC=$1
+GPA_ARGS="${@:2}"
+
+if [ -z "$GPA_EXEC" ]
+then
+  echo "Empty executable"
+  exit
+fi
+
+if [ ! -z "$GPA_VERBOSE" ]
+then
+  export GPA_REDIRECT=./gpa.log
+else
+  export GPA_REDIRECT=/dev/null
+fi
+
+MEASUREMENTS=gpa-measurements
+DATABASE=gpa-database
+echo "Make sure "$MEASUREMENTS" and "$DATABASE" is clean"
+
+echo "Profiling: collect performance metrics"
+
+hpcrun -e gpu=nvidia -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &> $GPA_REDIRECT
+
+echo "Parsing: parse CPU and GPU binaries"
+hpcstruct --gpucfg yes -j $GPA_THREADS $MEASUREMENTS &>> $GPA_REDIRECT
+hpcstruct -j $GPA_THREADS $GPA_EXEC -o $GPA_EXEC".hpcstruct" &>> $GPA_REDIRECT
+
+echo "Analyzing: match metrics with advise"
+hpcprof -S $GPA_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &>> $GPA_REDIRECT
+
+echo "Output advise in "$DATABASE"/gpa.advise"
+
+echo "Done..."

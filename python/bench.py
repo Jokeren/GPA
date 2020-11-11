@@ -4,94 +4,114 @@ import os
 import sys
 
 TestCase = namedtuple(
-    'TestCase', ['name', 'path', 'command', 'options', 'kernels'])
+    'TestCase', ['name', 'path', 'command', 'options', 'kernels', 'versions'])
 
 rodinia_test_cases = [
     TestCase(name='b+tree',
              path='rodinia/b+tree',
              command='./b+tree',
-             options=['file', '../../data/b+tree/mil.txt', 'command', '../../data/b+tree/command.txt'],
-             kernels=['findRangeK']),
+             options=['file', '../../data/b+tree/mil.txt',
+                      'command', '../../data/b+tree/command.txt'],
+             kernels=['findRangeK'],
+             versions=['', '-opt']),
     TestCase(name='backprop',
              path='rodinia/backprop',
              command='./backprop',
              options=['65536'],
-             kernels=['bpnn_layerforward_CUDA']),
+             kernels=['bpnn_layerforward_CUDA'],
+             versions=['', '-opt1', '-opt2']),
     TestCase(name='bfs',
              path='rodinia/bfs',
              command='./bfs',
              options=['../../data/graph1MW_6.txt'],
-             kernels=['Kernel']),
+             kernels=['Kernel'],
+             versions=['', '-opt1']),
     TestCase(name='cfd',
              path='rodinia/cfd',
              command='./euler3d',
              options=['../../data/cfd/fvcorr.domn.097K'],
-             kernels=['cuda_compute_flux']),
+             kernels=['cuda_compute_flux'],
+             versions=['', '-opt1']),
     TestCase(name='gaussian',
              path='rodinia/gaussian',
              command='./gaussian',
              options=['-s', '1024'],
-             kernels=['Fan2']),
+             kernels=['Fan2'],
+             versions=['', '-opt1']),
     TestCase(name='heartwall',
              path='rodinia/heartwall',
              command='./heartwall',
              options=['../../data/heartwall/test.avi', '20'],
-             kernels=['kernel']),
+             kernels=['kernel'],
+             versions=['', '-opt1']),
     TestCase(name='hotspot',
              path='rodinia/hotspot',
              command='./hotspot',
-             options=['512', '2', '2', '../../data/hotspot/temp_512', '../../data/hotspot/power_512', 'output.out'],
-             kernels=['calculate_temp']),
+             options=['512', '2', '2', '../../data/hotspot/temp_512',
+                      '../../data/hotspot/power_512', 'output.out'],
+             kernels=['calculate_temp'],
+             versions=['', '-opt1']),
     TestCase(name='huffman',
              path='rodinia/huffman',
              command='./palve',
              options=['../../data/huffman/test1024_H2.206587175259.in '],
-             kernels=['vlc_encode_kernel_sm64huff']),
+             kernels=['vlc_encode_kernel_sm64huff'],
+             versions=['', '-opt1']),
     TestCase(name='kmeans',
              path='rodinia/kmeans',
              command='./kmeans',
              options=['-o', '-i', '../../data/kmeans/kdd_cup'],
-             kernels=['kmeansPoint']),
+             kernels=['kmeansPoint'],
+             versions=['', '-opt1']),
     TestCase(name='lavaMD',
              path='rodinia/lavaMD',
              command='./lavaMD',
              options=['-boxes1d', '10'],
-             kernels=['kernel_gpu_cuda']),
+             kernels=['kernel_gpu_cuda'],
+             versions=['', '-opt1']),
     TestCase(name='lud',
              path='rodinia/lud',
              command='./cuda/lud_cuda',
              options=['-s', '256', '-v'],
-             kernels=['lud_diagonal']),
+             kernels=['lud_diagonal'],
+             versions=['', '-opt1']),
     TestCase(name='myocyte',
              path='rodinia/myocyte',
              command='./myocyte.out',
              options=['100', '100', '1'],
-             kernels=['solver_2']),
+             kernels=['solver_2'],
+             versions=['', '-opt1', '-opt2']),
     TestCase(name='nw',
              path='rodinia/nw',
              command='./needle',
              options=['2048', '10'],
-             kernels=['needle_cuda_shared_1']),
+             kernels=['needle_cuda_shared_1'],
+             versions=['', '-opt1']),
     TestCase(name='particlefilter',
              path='rodinia/particlefilter',
              command='./particlefilter_float',
              options=['-x', '128', '-y', '128', '-z', '10', '-np', '1000'],
-             kernels=['likelihood_kernel']),
+             kernels=['likelihood_kernel'],
+             versions=['', '-opt1']),
     TestCase(name='pathfinder',
              path='rodinia/pathfinder',
              command='./pathfinder',
              options=['100000', '100', '20', '>', 'result.txt'],
-             kernels=['dynproc_kernel']),
+             kernels=['dynproc_kernel'],
+             versions=['', '-opt1']),
     TestCase(name='srad',
              path='rodinia/srad/sradv1',
              command='./srad',
              options=['100', '0.5', '502', '458'],
-             kernels=['reduce']),
+             kernels=['reduce'],
+             versions=['', '-opt1']),
     TestCase(name='streamcluster',
              path='rodinia/streamcluster',
              command='./sc_gpu',
-             options=['10', '20', '256', '1024', '1024', '1000', 'none', 'output.txt', '1'],
-             kernels=['kernel_compute_cost'])
+             options=['10', '20', '256', '1024', '1024',
+                      '1000', 'none', 'output.txt', '1'],
+             kernels=['kernel_compute_cost'],
+             versions=['', '-opt1'])
 ]
 
 minimod_test_cases = [TestCase(name='minimod',
@@ -103,17 +123,22 @@ quicksilver_test_cases = [TestCase(name='quicksilver',
                                    path='./Quicksilver/src',
                                    command='./qs',
                                    options=['-N', '1000'],
-                                   kernel=['CycleTrackingKernel'])]
+                                   kernel=['CycleTrackingKernel'],
+                                   versions=['d00f2dd026234238b60610c818cd7f64e8a5658e',
+                                             'b31bbdb285222c7b0da43069477f59bc28bc4567',
+                                             '97002d957a22cb00a42065c4e40c50f186f5b52d'])]
 pelec_test_cases = [TestCase(name='pelec',
                              path='PeleC/ExecCpp/RegTests/PMF',
                              command='./Pele3d',
                              options=['./inputs_ex', '--max_step=1000'],
-                             kernel=['pc_expl_reactions'])]
+                             kernel=['pc_expl_reactions'],
+                             versions=['f125d78e327755c90154e26eea7076a4c1cb3832'])]
 exatensor_test_cases = [TestCase(name='exatensor',
-                                 path='ExaTENSOR',
+                                 path='ExaTENSOR/exatensor',
                                  command='./main',
                                  options=[],
-                                 kernels=['tensor_transpose'])]
+                                 kernels=['tensor_transpose'],
+                                 versions=['', '-opt1', '-opt2'])]
 
 
 def setup(case_name):
@@ -161,32 +186,43 @@ def cleanup():
 def bench(test_cases):
     path = pipe_read(['pwd'])
     for test_case in test_cases:
-        os.chdir(test_case.path)
+        kernel_times = dict()
+        for version in test_case.versions:
+            if version == '':
+                # original version, do nothing
+                pass
+            elif version.find('-opt') != -1:
+                # optimized version, change dir
+                os.chdir('../' + test_case.path + '_opt')
+            else:
+                # git version, checkout
+                pipe_read(['git', 'checkout', version])
 
-        cleanup()
-        print('Profile original' + test_case.path)
-        pipe_read(['gpa', test_case.command] + [test_case.options])
-        pipe_read(['mv', 'gpa-database', 'old-gpa-database'])
-        if test_case.path.find('rodinia') != -1:
-            os.chdir('../' + test_case.path + '_opt')
-        else:
-            pipe_read('git checkout advisor')
+            cleanup()
 
-        cleanup()
-        print('Profile optimized' + test_case.path)
-        pipe_read(['gpa', test_case.command] + [test_case.options])
-        for kernel in test_case.kernels:
-            origin = pipe_read(['grep', 'old-gpa-database/gpa.advise', kernel])
-            optimize = pipe_read(
-                ['grep', 'old-gpa-database/gpa.advise', kernel])
-            origin_time = origin.split(' ')[0]
-            optimize_time = optimize.split(' ')[0]
-            print('kernel {} origin: {}, optimized: {}, speedup: {}'.format(
-                kernel, origin_time, optimize_time, origin_time / optimize_time))
+            print('Profile ' + test_case.name + ' ' + version)
+            pipe_read(['gpa', test_case.command] + [test_case.options])
 
-        pipe_read(['rm', '-rf', '*gpa-database*'])
+            for kernel in test_case.kernels:
+                buf = pipe_read(['grep', 'gpa-database/gpa.advise', kernel])
+                entry = buf.splitlines()[0]
+                time = entry.split(' ')[-1]
+                if kernel in kernel_times[kernel]:
+                    kernel_times[kernel].append((version, time))
+                else:
+                    kernel_times[kernel] = [(version, time)]
 
-        os.chdir(path)
+        for kernel, version_times in kernel_times.items():
+            cur_version, cur_time = version_times[0]
+            for i in range(1, len(version_times)):
+                nxt_version, nxt_time = version_times[i]
+                print('{} ({}) - {} ({}) : {} x speedup '.format(cur_version,
+                                                                 cur_time, nxt_version, nxt_time, float(cur_time) / float(nxt_time)))
+                cur_version = nxt_version
+                cur_time = nxt_time
+
+    # back to top dir
+    os.chdir(path)
 
 
 case_name = None

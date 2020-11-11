@@ -6,25 +6,92 @@ import sys
 TestCase = namedtuple(
     'TestCase', ['name', 'path', 'command', 'options', 'kernels'])
 
-rodinia_test_cases = [TestCase(name='bfs',
-                               path='rodinia/bfs',
-                               command='./bfs',
-                               options='../data/graph1MW_6.txt')]
+rodinia_test_cases = [
+    TestCase(name='b+tree',
+             path='rodinia/b+tree',
+             command='./b+tree',
+             options=['file', '../data/b+tree/mil.txt', 'command', '../data/b+tree/command.txt']),
+    TestCase(name='backprop',
+             path='rodinia/backprop',
+             command='./backprop',
+             options=['65536']),
+    TestCase(name='bfs',
+             path='rodinia/bfs',
+             command='./bfs',
+             options=['../data/graph1MW_6.txt']),
+    TestCase(name='cfd',
+             path='rodinia/cfd',
+             command='./euler3d',
+             options=['../data/cfd/fvcorr.domn.097K']),
+    TestCase(name='gaussian',
+             path='rodinia/gaussian',
+             command='./gaussian',
+             options=['-s', '1024']),
+    TestCase(name='heartwall',
+             path='rodinia/heartwall',
+             command='./heartwall',
+             options=['../data/heartwall/test.avi', '20']),
+    TestCase(name='hotspot',
+             path='rodinia/hotspot',
+             command='./hotspot',
+             options=['512', '2', '2', '../data/hotspot/temp_512', '../data/hotspot/power_512', 'output.out']),
+    TestCase(name='huffman',
+             path='rodinia/huffman',
+             command='./palve',
+             options=['../data/huffman/test1024_H2.206587175259.in ']),
+    TestCase(name='kmeans',
+             path='rodinia/kmeans',
+             command='./kmeans',
+             options=['-o', '-i', '../data/kmeans/kdd_cup']),
+    TestCase(name='lavaMD',
+             path='rodinia/lavaMD',
+             command='./lavaMD',
+             options=['-boxes1d', '10']),
+    TestCase(name='lud',
+             path='rodinia/lud',
+             command='./cuda/lud_cuda',
+             options=['-s', '256', '-v']),
+    TestCase(name='myocyte',
+             path='rodinia/myocyte',
+             command='./myocyte.out',
+             options=['100', '100', '1']),
+    TestCase(name='nw',
+             path='rodinia/nw',
+             command='./needle',
+             options=['2048', '10']),
+    TestCase(name='particlefilter',
+             path='rodinia/particlefilter',
+             command='./particlefilter_float',
+             options=['-x', '128', '-y', '128', '-z', '10', '-np', '1000']),
+    TestCase(name='pathfinder',
+             path='rodinia/pathfinder',
+             command='./pathfinder',
+             options=['100000', '100', '20', '>', 'result.txt']),
+    TestCase(name='srad',
+             path='rodinia/srad/sradv1',
+             command='./srad',
+             options=['100', '0.5', '502', '458']),
+    TestCase(name='streamcluster',
+             path='rodinia/streamcluster',
+             command='./sc_gpu',
+             options=['10', '20', '256', '1024', '1024', '1000', 'none', 'output.txt', '1'])
+]
+
 minimod_test_cases = []
 quicksilver_test_cases = [TestCase(name='quicksilver',
                                    path='./Quicksilver/src',
                                    command='./qs',
-                                   options='',
+                                   options=['-N', '1000'],
                                    kernel=[''])]
 pelec_test_cases = [TestCase(name='pelec',
                              path='PeleC/ExecCpp/RegTests/PMF',
                              command='./Pele3d',
-                             options='./inputs_ex',
+                             options=['./inputs_ex', '--max_step=1000'],
                              kernel=[''])]
 exatensor_test_cases = [TestCase(name='exatensor',
                                  path='ExaTENSOR',
                                  command='./main',
-                                 options='',
+                                 options=[],
                                  kernels=['tensor_transpose'])]
 
 
@@ -77,7 +144,7 @@ def bench(test_cases):
 
         cleanup()
         print('Profile original' + test_case.path)
-        pipe_read(['gpa', test_case.command, test_case.options])
+        pipe_read(['gpa', test_case.command] + [test_case.options])
         pipe_read(['mv', 'gpa-database', 'old-gpa-database'])
         if test_case.path.find('rodinia') != -1:
             os.chdir('../' + test_case.path + '_opt')
@@ -86,7 +153,7 @@ def bench(test_cases):
 
         cleanup()
         print('Profile optimized' + test_case.path)
-        pipe_read(['gpa', test_case.command, test_case.options])
+        pipe_read(['gpa', test_case.command] + [test_case.options])
         for kernel in test_case.kernels:
             origin = pipe_read(['grep', 'old-gpa-database/gpa.advise', kernel])
             optimize = pipe_read(

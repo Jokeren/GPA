@@ -102,7 +102,7 @@ def setup(case_name):
             sub_case_name = case_name.split('/')[1]
             for test_case in rodinia_test_cases:
                 if test_case.name == sub_case_name:
-                    ret = [test_case]
+                    ret.append(test_case)
         else:
             ret = rodinia_test_cases
     elif case_name == 'quicksilver':

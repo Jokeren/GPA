@@ -66,9 +66,9 @@ echo "Parsing: parse CPU and GPU binaries"
 hpcstruct --gpucfg yes -j $GPA_THREADS $MEASUREMENTS &>>$GPA_REDIRECT
 hpcstruct -j $GPA_THREADS $GPA_EXEC -o $GPA_EXEC".hpcstruct" &>>$GPA_REDIRECT
 
-echo "Analyzing: match metrics with advise"
+echo "Analyzing: match metrics with advice"
 hpcprof -S $GPA_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &>>$GPA_REDIRECT
 
-echo "Output advise in "$DATABASE"/gpa.advise"
+echo "Output advice in "$DATABASE"/gpa.advice"
 
 echo "Done..."

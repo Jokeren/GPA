@@ -27,9 +27,9 @@ COPY hpctoolkit ./hpctoolkit
 WORKDIR hpctoolkit
 WORKDIR build
 RUN ../configure --prefix=/opt/hpctoolkit \
-                 --with-cuda=/usr/local/cuda-11.1 \
-                 --with-cupti=/usr/local/cuda-11.1 \
-                 --with-spack=$(spack find --path cmake | tail -n 1 | cut -d ' ' -f 3 | sed 's,/*[^/]\+/*$,,')
+                 --with-cuda=/usr/local/cuda \
+                 --with-cupti=/usr/local/cuda \
+                 --with-spack=$(spack find --path boost | tail -n 1 | cut -d ' ' -f 3 | sed 's,/*[^/]\+/*$,,')
 RUN make
 RUN make install
 ENV HPCTOOLKIT_ROOT=/opt/hpctoolkit

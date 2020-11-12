@@ -5,11 +5,35 @@ usage() {
 Usage:
     gpa [profiling options] [executable] [executable options]
     profiling options:
+    -j <cpu-threads>
+    number of analysis threads
     -h help
     -v output logs in gpa.log
 EOF
   exit 0
 }
+
+while test "x$1" != x
+do
+  arg="$1" ; shift
+  case "$arg" in
+    -v)
+      export GPA_VERBOSE=1
+      ;;
+    -j)
+      export GPA_THREADS=$1
+      shift
+      ;;
+    -h)
+      usage
+      exit
+      ;;
+    * )
+      set -- "$arg" "$@"
+      break
+      ;;
+  esac
+done
 
 GPA_EXEC=$1
 GPA_ARGS="${@:2}"
@@ -17,6 +41,11 @@ GPA_ARGS="${@:2}"
 if [ -z "$GPA_EXEC" ]; then
   echo "Empty executable"
   exit
+fi
+
+if [ -z "$GVPROF_THREADS" ]
+then
+  export GPA_THREADS=1
 fi
 
 if [ ! -z "$GPA_VERBOSE" ]; then
@@ -31,7 +60,7 @@ echo "Make sure "$MEASUREMENTS" and "$DATABASE" is clean"
 
 echo "Profiling: collect performance metrics"
 
-hpcrun -e gpu=nvidia -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
+hpcrun -e gpu=nvidia,pc -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
 
 echo "Parsing: parse CPU and GPU binaries"
 hpcstruct --gpucfg yes -j $GPA_THREADS $MEASUREMENTS &>>$GPA_REDIRECT

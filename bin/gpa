@@ -57,6 +57,8 @@ fi
 MEASUREMENTS=gpa-measurements
 DATABASE=gpa-database
 echo "Make sure "$MEASUREMENTS" and "$DATABASE" is clean"
+rm -rf $MEASUREMENTS
+rm -rf $DATABASE
 
 echo "Profiling: collect performance metrics"
 

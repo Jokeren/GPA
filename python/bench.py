@@ -55,8 +55,8 @@ rodinia_test_cases = [
              versions=['', '-opt']),
     TestCase(name='huffman',
              path='./GPA-Benchmark/rodinia/huffman',
-             command='./palve',
-             options=['../../data/huffman/test1024_H2.206587175259.in '],
+             command='./pavle',
+             options=['../../data/huffman/test1024_H2.206587175259.in'],
              kernels=['vlc_encode_kernel_sm64huff'],
              versions=['', '-opt']),
     TestCase(name='kmeans',
@@ -70,7 +70,7 @@ rodinia_test_cases = [
              command='./lavaMD',
              options=['-boxes1d', '10'],
              kernels=['kernel_gpu_cuda'],
-             versions=['', '-opt1']),
+             versions=['', '-opt']),
     TestCase(name='lud',
              path='./GPA-Benchmark/rodinia/lud',
              command='./cuda/lud_cuda',
@@ -102,7 +102,7 @@ rodinia_test_cases = [
              kernels=['dynproc_kernel'],
              versions=['', '-opt']),
     TestCase(name='srad',
-             path='./GPA-Benchmark/rodinia/srad/sradv1',
+             path='./GPA-Benchmark/rodinia/srad/srad_v1',
              command='./srad',
              options=['100', '0.5', '502', '458'],
              kernels=['reduce'],
@@ -172,13 +172,15 @@ def setup(case_name):
     return ret
 
 
-def pipe_read(command):
+def pipe_read(command, err=False):
     process = subprocess.Popen(command,
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     #print(stdout)
     #print(stderr)
+    if err:
+        return stderr
     return stdout
 
 
@@ -207,28 +209,28 @@ def bench(test_cases):
 
             cleanup()
 
-            print('Warmup ' + test_case.name + ' ' + version)
-            for i in range(3):
-                pipe_read([test_case.command] + test_case.options)
-
             print('Profile ' + test_case.name + ' ' + version)
-            pipe_read(['gpa', test_case.command] + test_case.options)
+            buf = pipe_read(['nvprof', test_case.command] +
+                            test_case.options, err=True).decode('utf-8')
 
             for kernel in test_case.kernels:
-                buf = pipe_read(
-                    ['grep', 'GPU Kernel', './gpa-database/gpa.advice']).decode('utf-8')
                 entries = buf.splitlines()
                 for entry in entries:
-                    if entry.find(str(kernel) + '(') != -1 or entry.find(str(kernel) + ':') != -1:
-                        time = entry.split(' ')[-1]
+                    columns = entry.split()
+                    find = False
+                    time = 0
+                    if columns[0] == 'GPU' and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
+                        find = True
+                        time = columns[3]
+                    elif len(columns) >= 7 and (columns[6].find(kernel + '(') != -1 or columns[6] == kernel):
+                        find = True
+                        time = columns[1]
+                    if find is True:
                         if kernel in kernel_times:
                             kernel_times[kernel].append((version, time))
                         else:
                             kernel_times[kernel] = [(version, time)]
                         break
-
-            shutil.rmtree('./gpa-measurements')
-            shutil.rmtree('./gpa-database')
 
             # back to top dir
             os.chdir(path)
@@ -239,10 +241,47 @@ def bench(test_cases):
                 nxt_version, nxt_time = version_times[i]
                 if cur_version == '':
                     cur_version = 'origin'
-                print('{} {} ({}s) vs {} ({}s) : {}x speedup '.format(
-                    test_case.name, nxt_version, nxt_time, cur_version, cur_time, round(float(cur_time) / float(nxt_time), 2)))
+                cur_time_float = float(cur_time.replace('us', '').replace(
+                    'ms', '').replace('ns', '').replace('s', ''))
+                nxt_time_float = float(nxt_time.replace('us', '').replace(
+                    'ms', '').replace('ns', '').replace('s', ''))
+                speedup = round(cur_time_float / nxt_time_float, 2)
+                print('{} {} ({}) vs {} ({}) : {}x speedup '.format(
+                    test_case.name, nxt_version, nxt_time, cur_version, cur_time, speedup))
                 cur_version = nxt_version
                 cur_time = nxt_time
+
+
+def advise(test_cases):
+    path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
+    for test_case in test_cases:
+        kernel_times = dict()
+        for version in test_case.versions:
+            if version == '':
+                # original version, do nothing
+                os.chdir(test_case.path)
+            elif version.find('-opt') != -1:
+                # optimized version, change dir
+                os.chdir(test_case.path + version)
+            else:
+                # git version, checkout
+                pipe_read(['git', 'checkout', version])
+                if test_case.name == 'pelec':
+                    pipe_read(['git', 'submodule', 'update',
+                               '--init', '--recursive'])
+
+            cleanup()
+
+            print('Warmup ' + test_case.name + ' ' + version)
+            for i in range(3):
+                pipe_read([test_case.command] + test_case.options)
+
+            print('Profile ' + test_case.name + ' ' + version)
+            buf = pipe_read(['gpa', test_case.command] +
+                            test_case.options).decode('utf-8')
+
+            # back to top dir
+            os.chdir(path)
 
 
 case_name = None
@@ -261,6 +300,9 @@ if case_name == 'show':
     pp.pprint(quicksilver_test_cases)
     pp.pprint('pelec')
     pp.pprint(pelec_test_cases)
+if case_name == 'advise':
+    test_cases = setup('rodinia')
+    advise(test_cases)
 else:
     test_cases = setup(case_name)
     bench(test_cases)

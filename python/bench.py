@@ -5,6 +5,8 @@ import sys
 import pprint
 import shutil
 
+ITERS=5
+
 TestCase = namedtuple(
     'TestCase', ['name', 'path', 'command', 'options', 'kernels', 'versions'])
 
@@ -125,18 +127,18 @@ minimod_test_cases = [TestCase(name='minimod',
 quicksilver_test_cases = [TestCase(name='quicksilver',
                                    path='./GPA-Benchmark/Quicksilver/src',
                                    command='./qs',
-                                   options=['-N', '1000'],
-                                   kernels=['CycleTrackingKernel'],
+                                   options=[],
+                                   kernels=['cycleTracking_Kernel'],
                                    versions=['d00f2dd026234238b60610c818cd7f64e8a5658e',
                                              'b31bbdb285222c7b0da43069477f59bc28bc4567',
                                              '97002d957a22cb00a42065c4e40c50f186f5b52d'])]
 pelec_test_cases = [TestCase(name='pelec',
                              path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
-                             command='./Pele3d',
-                             options=['./inputs_ex', '--max_step=1000'],
-                             kernels=['pc_expl_reactions'],
-                             versions=['53c0cf9d7a072d2535472e864c05924e10696c11',
-                                       '23fbe754802c8d6ea5e8a1b5a1f577d1ff51bff9'])]
+                             command='./PeleC3d.gnu.CUDA.ex',
+                             options=['./inputs_ex'],
+                             kernels=['react_state'],
+                             versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
+                                       'f125d78e327755c90154e26eea7076a4c1cb3832'])]
 exatensor_test_cases = [TestCase(name='exatensor',
                                  path='./GPA-Benchmark/ExaTENSOR/exatensor',
                                  command='./main',
@@ -177,8 +179,6 @@ def pipe_read(command, err=False):
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
-    #print(stdout)
-    #print(stderr)
     if err:
         return stderr
     return stdout
@@ -202,52 +202,91 @@ def bench(test_cases):
                 os.chdir(test_case.path + version)
             else:
                 # git version, checkout
+                os.chdir(test_case.path)
                 pipe_read(['git', 'checkout', version])
                 if test_case.name == 'pelec':
+                    os.chdir('../../..')
                     pipe_read(['git', 'submodule', 'update',
                                '--init', '--recursive'])
+                    os.chdir('ExecCpp/RegTests/PMF')
 
             cleanup()
 
             print('Profile ' + test_case.name + ' ' + version)
-            buf = pipe_read(['nvprof', test_case.command] +
+
+            for i in range(ITERS):
+                if test_case.name == 'quicksilver':
+                    buf = pipe_read([test_case.command] + test_case.options).decode('utf-8')
+                else:
+                    buf = pipe_read(['nvprof', test_case.command] +
                             test_case.options, err=True).decode('utf-8')
 
-            for kernel in test_case.kernels:
-                entries = buf.splitlines()
-                for entry in entries:
-                    columns = entry.split()
-                    find = False
-                    time = 0
-                    if columns[0] == 'GPU' and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
-                        find = True
-                        time = columns[3]
-                    elif len(columns) >= 7 and (columns[6].find(kernel + '(') != -1 or columns[6] == kernel):
-                        find = True
-                        time = columns[1]
-                    if find is True:
-                        if kernel in kernel_times:
-                            kernel_times[kernel].append((version, time))
-                        else:
-                            kernel_times[kernel] = [(version, time)]
-                        break
+                for kernel in test_case.kernels:
+                    entries = buf.splitlines()
+                    for entry in entries:
+                        columns = entry.split()
+                        find = False
+                        time = 0
+                        if test_case.name == 'quicksilver':
+                            if len(columns) > 0 and columns[0] == kernel:
+                                find = True
+                                time = columns[2] + 'ms'
+                        elif test_case.name == 'pelec':
+                            if columns[0] == 'GPU' and columns[8].find(kernel) != -1:
+                                find = True
+                                time = columns[3]
+                            elif len(columns) >= 7 and columns[6].find(kernel) != -1:
+                                find = True
+                                time = columns[1]
+                        elif columns[0] == 'GPU' and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
+                            find = True
+                            time = columns[3]
+                        elif len(columns) >= 7 and (columns[6].find(kernel + '(') != -1 or columns[6] == kernel):
+                            find = True
+                            time = columns[1]
+                        if find is True:
+                            if kernel in kernel_times:
+                                if version in kernel_times[kernel]:
+                                    kernel_times[kernel][version].append(time)
+                                else:
+                                    kernel_times[kernel][version] = [time]
+                            else:
+                                kernel_times[kernel] = dict()
+                                kernel_times[kernel][version] = [time]
+                            break
 
             # back to top dir
             os.chdir(path)
 
-        for kernel, version_times in kernel_times.items():
-            cur_version, cur_time = version_times[0]
-            for i in range(1, len(version_times)):
-                nxt_version, nxt_time = version_times[i]
+        for kernel in kernel_times:
+            cur_version, cur_time = '', 0.0
+            nxt_version, nxt_time = '', 0.0
+            for version in kernel_times[kernel]:
+                version_times = kernel_times[kernel][version]
+                unit = ''
+                nxt_time_float = 0.0
+                for i in range(0, len(version_times)):
+                    if version_times[i].find('us') != -1:
+                        nxt_time_float += float(version_times[i].replace('us', ''))
+                        unit = 'us'
+                    elif version_times[i].find('ms') != -1:
+                        nxt_time_float += float(version_times[i].replace('ms', ''))
+                        unit = 'ms'
+                    elif version_times[i].find('ns') != -1:
+                        nxt_time_float += float(version_times[i].replace('ns', ''))
+                        unit = 'ns'
+                    else:
+                        nxt_time_float += float(version_times[i].replace('s', ''))
+                        unit = 's'
+                # Average
+                nxt_time = nxt_time_float / len(version_times)
                 if cur_version == '':
-                    cur_version = 'origin'
-                cur_time_float = float(cur_time.replace('us', '').replace(
-                    'ms', '').replace('ns', '').replace('s', ''))
-                nxt_time_float = float(nxt_time.replace('us', '').replace(
-                    'ms', '').replace('ns', '').replace('s', ''))
-                speedup = round(cur_time_float / nxt_time_float, 2)
-                print('{} {} ({}) vs {} ({}) : {}x speedup '.format(
-                    test_case.name, nxt_version, nxt_time, cur_version, cur_time, speedup))
+                    nxt_version = 'origin'
+                else:
+                    nxt_version = version
+                    speedup = round(cur_time / nxt_time, 2)
+                    print('{} {} ({:.3f}{}) vs {} ({:.3f}{}) : {}x speedup '.format(
+                        test_case.name, nxt_version, nxt_time, unit, cur_version, cur_time, unit, speedup))
                 cur_version = nxt_version
                 cur_time = nxt_time
 
@@ -256,32 +295,21 @@ def advise(test_cases):
     path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
     for test_case in test_cases:
         kernel_times = dict()
-        for version in test_case.versions:
-            if version == '':
-                # original version, do nothing
-                os.chdir(test_case.path)
-            elif version.find('-opt') != -1:
-                # optimized version, change dir
-                os.chdir(test_case.path + version)
-            else:
-                # git version, checkout
-                pipe_read(['git', 'checkout', version])
-                if test_case.name == 'pelec':
-                    pipe_read(['git', 'submodule', 'update',
-                               '--init', '--recursive'])
+        # original version, do nothing
+        os.chdir(test_case.path)
 
-            cleanup()
+        cleanup()
 
-            print('Warmup ' + test_case.name + ' ' + version)
-            for i in range(3):
-                pipe_read([test_case.command] + test_case.options)
+        print('Warmup ' + test_case.name + ' ' + version)
+        for i in range(3):
+            pipe_read([test_case.command] + test_case.options)
 
-            print('Profile ' + test_case.name + ' ' + version)
-            buf = pipe_read(['gpa', test_case.command] +
-                            test_case.options).decode('utf-8')
+        print('Profile ' + test_case.name + ' ' + version)
+        buf = pipe_read(['gpa', test_case.command] +
+                test_case.options).decode('utf-8')
 
-            # back to top dir
-            os.chdir(path)
+        # back to top dir
+        os.chdir(path)
 
 
 case_name = None
@@ -301,7 +329,7 @@ if case_name == 'show':
     pp.pprint('pelec')
     pp.pprint(pelec_test_cases)
 if case_name == 'advise':
-    test_cases = setup('rodinia')
+    test_cases = setup('')
     advise(test_cases)
 else:
     test_cases = setup(case_name)

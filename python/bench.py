@@ -294,22 +294,49 @@ def bench(test_cases):
 def advise(test_cases):
     path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
     for test_case in test_cases:
-        kernel_times = dict()
-        # original version, do nothing
-        os.chdir(test_case.path)
+        for version in test_case.versions:
+            if version == '':
+                # original version, do nothing
+                os.chdir(test_case.path)
+            elif version.find('-opt') != -1:
+                # optimized version, change dir
+                os.chdir(test_case.path + version)
+            else:
+                # git version, checkout
+                os.chdir(test_case.path)
+                pipe_read(['git', 'checkout', version])
+                if test_case.name == 'pelec':
+                    os.chdir('../../..')
+                    pipe_read(['git', 'submodule', 'update',
+                               '--init', '--recursive'])
+                    os.chdir('ExecCpp/RegTests/PMF')
 
-        cleanup()
+            # original version, do nothing
+            os.chdir(test_case.path)
 
-        print('Warmup ' + test_case.name + ' ' + version)
-        for i in range(3):
-            pipe_read([test_case.command] + test_case.options)
+            cleanup()
 
-        print('Profile ' + test_case.name + ' ' + version)
-        buf = pipe_read(['gpa', test_case.command] +
-                test_case.options).decode('utf-8')
+            print('Warmup ' + test_case.name + ' ' + version)
+            for i in range(1):
+                pipe_read([test_case.command] + test_case.options)
 
-        # back to top dir
-        os.chdir(path)
+            print('Profile ' + test_case.name + ' ' + version)
+            buf = pipe_read(['gpa', test_case.command] +
+                    test_case.options).decode('utf-8')
+
+            if version == '':
+                # original version, do nothing
+            elif version.find('-opt') != -1:
+                # optimized version, change dir
+                shutil.move('gpa-database', 'gpa-database-' + version)
+            else:
+                # git version, checkout
+                shutil.move('gpa-database', 'gpa-database-' + version)
+
+            shutil.rmtree('gpa-measurements')
+
+            # back to top dir
+            os.chdir(path)
 
 
 case_name = None

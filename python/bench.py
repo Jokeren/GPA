@@ -326,6 +326,7 @@ def advise(test_cases):
 
             if version == '':
                 # original version, do nothing
+                pass
             elif version.find('-opt') != -1:
                 # optimized version, change dir
                 shutil.move('gpa-database', 'gpa-database-' + version)

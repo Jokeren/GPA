@@ -1,6 +1,6 @@
 [submodule "hpctoolkit"]
 	path = hpctoolkit
-	url = https://HPCToolkit/hpctoolkit.git
+	url = https://github.com/HPCToolkit/hpctoolkit.git
 [submodule "GPA-Benchmark"]
 	path = GPA-Benchmark
-	url = https://Jokeren/GPA-Benchmark.git
+	url = https://github.com/Jokeren/GPA-Benchmark.git

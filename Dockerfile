@@ -8,7 +8,7 @@ RUN apt-get -y update
 RUN apt-get -y install curl git python gfortran
 
 WORKDIR /staging
-RUN git clone https://github.com/spack/spack.git
+RUN git clone https://github.com/spack/spack.git && cd spack && git checkout fafff0c6c0142e62e0f6b65b1d53ea58feb7fc7a
 ENV SPACK_ROOT=/staging/spack
 RUN ln -s $SPACK_ROOT/share/spack/docker/entrypoint.bash \
           /usr/local/bin/docker-shell \
@@ -26,6 +26,7 @@ WORKDIR /staging
 COPY hpctoolkit ./hpctoolkit
 WORKDIR hpctoolkit
 WORKDIR build
+
 RUN ../configure --prefix=/opt/hpctoolkit \
                  --with-cuda=/usr/local/cuda \
                  --with-cupti=/usr/local/cuda \

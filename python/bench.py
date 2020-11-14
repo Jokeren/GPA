@@ -119,11 +119,13 @@ rodinia_test_cases = [
 ]
 
 minimod_test_cases = [TestCase(name='minimod',
-                               path='./GPA-Benchmark/minimod',
-                               command='./minimod',
+                               path='./GPA-Benchmark/gpa-minimod-artifacts',
+                               command='./main_cuda_smem_u_s_opt-gpu_nvcc',
                                options=[],
-                               kernels=['target_pml_3d'],
-                               versions=[])]
+                               kernels=['target_pml_3d_kernel'],
+                               versions=['cuda_smem_u_s_opt-gpu',
+                                   'cuda_smem_u_fastmath_s_opt-gpu',
+                                   'cuda_smem_u_both_s_opt-gpu'])]
 quicksilver_test_cases = [TestCase(name='quicksilver',
                                    path='./GPA-Benchmark/Quicksilver/src',
                                    command='./qs',
@@ -184,9 +186,13 @@ def pipe_read(command, err=False):
     return stdout
 
 
-def cleanup():
-    pipe_read(['make', 'clean'])
-    pipe_read(['make', '-j8'])
+def cleanup(target=None):
+    if target is None:
+        pipe_read(['make', 'clean'])
+        pipe_read(['make', '-j8'])
+    else:
+        pipe_read(['make', target, 'clean'])
+        pipe_read(['make', target, '-j8'])
 
 
 def bench(test_cases):
@@ -203,20 +209,28 @@ def bench(test_cases):
             else:
                 # git version, checkout
                 os.chdir(test_case.path)
-                pipe_read(['git', 'checkout', version])
-                if test_case.name == 'pelec':
-                    os.chdir('../../..')
-                    pipe_read(['git', 'submodule', 'update',
-                               '--init', '--recursive'])
-                    os.chdir('ExecCpp/RegTests/PMF')
+                if test_case.name == 'minimod':
+                    pass
+                else:
+                    pipe_read(['git', 'checkout', version])
+                    if test_case.name == 'pelec':
+                        os.chdir('../../..')
+                        pipe_read(['git', 'submodule', 'update',
+                                   '--init', '--recursive'])
+                        os.chdir('ExecCpp/RegTests/PMF')
 
-            cleanup()
+            if test_case.name == 'minimod':
+                cleanup('TARGET=' + version)
+            else:
+                cleanup()
 
             print('Profile ' + test_case.name + ' ' + version)
 
             for i in range(ITERS):
                 if test_case.name == 'quicksilver':
                     buf = pipe_read([test_case.command] + test_case.options).decode('utf-8')
+                elif test_case.name == 'minimod':
+                    buf = pipe_read(['./main_' + version + '_nvcc'] + test_case.options).decode('utf-8')
                 else:
                     buf = pipe_read(['nvprof', test_case.command] +
                             test_case.options, err=True).decode('utf-8')
@@ -238,6 +252,10 @@ def bench(test_cases):
                             elif len(columns) >= 7 and columns[6].find(kernel) != -1:
                                 find = True
                                 time = columns[1]
+                        elif test_case.name == 'minimod':
+                            if len(columns) > 0 and columns[0] == 'Time' and columns[1] == 'kernel:':
+                                find = True
+                                time = columns[2] + 's'
                         elif columns[0] == 'GPU' and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
                             find = True
                             time = columns[3]
@@ -311,10 +329,10 @@ def advise(test_cases):
                                '--init', '--recursive'])
                     os.chdir('ExecCpp/RegTests/PMF')
 
-            # original version, do nothing
-            os.chdir(test_case.path)
-
-            cleanup()
+            if test_case.name == 'minimod':
+                cleanup('TARGET=' + version)
+            else:
+                cleanup()
 
             print('Warmup ' + test_case.name + ' ' + version)
             for i in range(1):
@@ -360,5 +378,7 @@ if case_name == 'advise':
     test_cases = setup('')
     advise(test_cases)
 else:
+    if case_name is None:
+        case_name = ''
     test_cases = setup(case_name)
     bench(test_cases)

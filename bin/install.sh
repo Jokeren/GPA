@@ -2,13 +2,20 @@
 
 SOURCE_DIR=$(pwd)
 DIR=""
+SPACK_DIR=""
 
-if [ $# -ne 1 ]; then
-  if [ $# -eq 0 ]; then
-    DIR=$(pwd)/gpa
-  fi
+if [ $# -eq 0 ]; then
+  DIR=$(`pwd`)/gpa
 else
-  DIR=$1
+  echo $#
+  if [ $# -eq 1 ]; then
+    DIR=$1
+  else
+    if [ $# -eq 2 ]; then
+      DIR=$1
+      SPACK_DIR=$2
+    fi
+  fi
 fi
 
 if [ -z "$DIR" ]; then
@@ -20,19 +27,21 @@ mkdir $DIR
 cd $DIR
 
 # Install spack
-git clone https://github.com/spack/spack.git
-export SPACK_ROOT=$(pwd)/spack
-export PATH=${SPACK_ROOT}/bin:${PATH}
-source ${SPACK_ROOT}/share/spack/setup-env.sh
+if [ -z $SPACK_DIR ]; then
+  git clone https://github.com/spack/spack.git
+  export SPACK_ROOT=$(pwd)/spack
+  export PATH=${SPACK_ROOT}/bin:${PATH}
+  source ${SPACK_ROOT}/share/spack/setup-env.sh
 
-# Install hpctoolkit dependencies
-spack install --only dependencies hpctoolkit ^dyninst@master
+  # Install hpctoolkit dependencies
+  spack install --only dependencies hpctoolkit ^dyninst@master ^binutils@2.34
 
-CUDA_PATH ?= /usr/local/cuda/
+  # Find spack dir
+  B=$(spack find --path boost | tail -n 1 | cut -d ' ' -f 3)
+  SPACK_DIR=${B%/*}
+fi
 
-# Find spack dir
-B=$(spack find --path boost | tail -n 1 | cut -d ' ' -f 3)
-S=${B%/*}
+CUDA_PATH=/usr/local/cuda/
 
 # install hpctoolkit
 cd $SOURCE_DIR
@@ -40,9 +49,11 @@ cd hpctoolkit
 mkdir build
 cd build
 ../configure --prefix=$DIR/hpctoolkit --with-cuda=$CUDA_PATH \
-  --with-cupti=$CUDA_PATH --with-spack=$S
+  --with-cupti=$CUDA_PATH --with-spack=$SPACK_DIR
 make install -j8
 
 echo "Install in "$DIR"/hpctoolkit"
 
+cd $SPACK_DIR
+cp -rf ./bin $DIR/bin
 export PATH=$DIR/bin:${PATH}

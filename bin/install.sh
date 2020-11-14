@@ -7,7 +7,6 @@ SPACK_DIR=""
 if [ $# -eq 0 ]; then
   DIR=$(`pwd`)/gpa
 else
-  echo $#
   if [ $# -eq 1 ]; then
     DIR=$1
   else
@@ -19,6 +18,8 @@ else
 fi
 
 if [ -z "$DIR" ]; then
+  echo $DIR
+  echo $SPACK_DIR
   echo "Wrong prefix"
   exit
 fi
@@ -54,6 +55,6 @@ make install -j8
 
 echo "Install in "$DIR"/hpctoolkit"
 
-cd $SPACK_DIR
+cd $SOURCE_DIR
 cp -rf ./bin $DIR/bin
 export PATH=$DIR/bin:${PATH}

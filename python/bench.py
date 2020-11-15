@@ -6,6 +6,7 @@ import pprint
 import shutil
 
 ITERS=5
+DEBUG=False
 
 TestCase = namedtuple(
     'TestCase', ['name', 'path', 'command', 'options', 'kernels', 'versions'])
@@ -181,8 +182,8 @@ def pipe_read(command, err=False):
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
-    #print(stdout)
-    #print(stderr)
+    if DEBUG:
+        print(stderr)
     if err:
         return stderr
     return stdout
@@ -380,7 +381,8 @@ if case_name == 'advise':
     test_cases = setup('')
     advise(test_cases)
 else:
-    if case_name is None:
-        case_name = ''
+    if case_name == 'debug':
+        DEBUG = True
+    case_name = ''
     test_cases = setup(case_name)
     bench(test_cases)

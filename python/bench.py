@@ -5,8 +5,8 @@ import sys
 import pprint
 import shutil
 
-ITERS=10
-DEBUG=False
+ITERS = 10
+DEBUG = False
 
 TestCase = namedtuple(
     'TestCase', ['name', 'path', 'command', 'options', 'kernels', 'versions'])
@@ -125,8 +125,8 @@ minimod_test_cases = [TestCase(name='minimod',
                                options=[],
                                kernels=['target_pml_3d_kernel'],
                                versions=['cuda_smem_u_s_opt-gpu',
-                                   'cuda_smem_u_fastmath_s_opt-gpu',
-                                   'cuda_smem_u_both_s_opt-gpu'])]
+                                         'cuda_smem_u_fastmath_s_opt-gpu',
+                                         'cuda_smem_u_both_s_opt-gpu'])]
 quicksilver_test_cases = [TestCase(name='quicksilver',
                                    path='./GPA-Benchmark/Quicksilver/src',
                                    command='./qs',
@@ -134,11 +134,27 @@ quicksilver_test_cases = [TestCase(name='quicksilver',
                                    kernels=['cycleTracking_Kernel'],
                                    versions=['9ed5d6edb68dfaf6da7801df831f69a5425788f4',
                                              '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
-                                             'c43974e2327ff69fb48fb814f6cffc66953312ce'])]
+                                             'c43974e2327ff69fb48fb814f6cffc66953312ce']),
+                          TestCase(name='quicksilver',
+                                   path='./GPA-Benchmark/Quicksilver/src',
+                                   command='./qs',
+                                   options=['-N', '500'],
+                                   kernels=['cycleTracking_Kernel'],
+                                   versions=['9ed5d6edb68dfaf6da7801df831f69a5425788f4',
+                                             '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
+                                             'c43974e2327ff69fb48fb814f6cffc66953312ce'])
+                          ]
 pelec_test_cases = [TestCase(name='pelec',
                              path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
                              command='./PeleC3d.gnu.CUDA.ex',
                              options=['./inputs_ex'],
+                             kernels=['react_state'],
+                             versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
+                                       'f125d78e327755c90154e26eea7076a4c1cb3832']),
+                    TestCase(name='pelec',
+                             path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
+                             command='./PeleC3d.gnu.CUDA.ex',
+                             options=['./inputs_ex', 'max_step', '500'],
                              kernels=['react_state'],
                              versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
                                        'f125d78e327755c90154e26eea7076a4c1cb3832'])]
@@ -227,16 +243,19 @@ def bench(test_cases):
             else:
                 cleanup()
 
-            print('Profile ' + test_case.name + ' ' + version)
+            print('Profile ' + test_case.name + ' ' +
+                  version + ' ' + str(test_case.options))
 
             for i in range(ITERS):
                 if test_case.name == 'quicksilver':
-                    buf = pipe_read([test_case.command] + test_case.options).decode('utf-8')
+                    buf = pipe_read([test_case.command] +
+                                    test_case.options).decode('utf-8')
                 elif test_case.name == 'minimod':
-                    buf = pipe_read(['./main_' + version + '_nvcc'] + test_case.options).decode('utf-8')
+                    buf = pipe_read(
+                        ['./main_' + version + '_nvcc'] + test_case.options).decode('utf-8')
                 else:
                     buf = pipe_read(['nvprof', test_case.command] +
-                            test_case.options, err=True).decode('utf-8')
+                                    test_case.options, err=True).decode('utf-8')
 
                 for kernel in test_case.kernels:
                     entries = buf.splitlines()
@@ -288,16 +307,20 @@ def bench(test_cases):
                 nxt_time_float = 0.0
                 for i in range(0, len(version_times)):
                     if version_times[i].find('us') != -1:
-                        nxt_time_float += float(version_times[i].replace('us', ''))
+                        nxt_time_float += float(
+                            version_times[i].replace('us', '')) / 1e6
                         unit = 'us'
                     elif version_times[i].find('ms') != -1:
-                        nxt_time_float += float(version_times[i].replace('ms', ''))
+                        nxt_time_float += float(
+                            version_times[i].replace('ms', '')) / 1e3
                         unit = 'ms'
                     elif version_times[i].find('ns') != -1:
-                        nxt_time_float += float(version_times[i].replace('ns', ''))
+                        nxt_time_float += float(
+                            version_times[i].replace('ns', '')) / 1e9
                         unit = 'ns'
                     else:
-                        nxt_time_float += float(version_times[i].replace('s', ''))
+                        nxt_time_float += float(
+                            version_times[i].replace('s', ''))
                         unit = 's'
                 # Average
                 nxt_time = nxt_time_float / len(version_times)
@@ -306,8 +329,19 @@ def bench(test_cases):
                 else:
                     nxt_version = version
                     speedup = round(cur_time / nxt_time, 2)
+                    nxt_time_unit = 0.0
+                    cur_time_unit = 0.0
+                    if unit == 'us':
+                        nxt_time_unit = nxt_time * 1e6
+                        cur_time_unit = cur_time * 1e6
+                    elif unit == 'ms':
+                        nxt_time_unit = nxt_time * 1e3
+                        cur_time_unit = cur_time * 1e3
+                    elif unit == 'ns':
+                        nxt_time_unit = nxt_time * 1e9
+                        cur_time_unit = cur_time * 1e9
                     print('{} {} ({:.3f}{}) vs {} ({:.3f}{}) : {}x speedup '.format(
-                        test_case.name, nxt_version, nxt_time, unit, cur_version, cur_time, unit, speedup))
+                        test_case.name, nxt_version, nxt_time_unit, unit, cur_version, cur_time_unit, unit, speedup))
                 cur_version = nxt_version
                 cur_time = nxt_time
 
@@ -338,12 +372,12 @@ def advise(test_cases):
                 cleanup()
 
             print('Warmup ' + test_case.name + ' ' + version)
-            for i in range(1):
+            for _ in range(1):
                 pipe_read([test_case.command] + test_case.options)
 
             print('Profile ' + test_case.name + ' ' + version)
-            buf = pipe_read(['gpa', test_case.command] +
-                    test_case.options).decode('utf-8')
+            pipe_read(['gpa', test_case.command] +
+                      test_case.options).decode('utf-8')
 
             if version == '':
                 # original version, do nothing

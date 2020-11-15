@@ -27,4 +27,5 @@ WORKDIR GPA
 RUN mkdir build
 RUN ./bin/install.sh $(pwd)/build $(spack find --path boost | tail -n 1 | cut -d ' ' -f 3 | sed 's,/*[^/]\+/*$,,')
 ENV PATH=$(pwd)/build/bin:${PATH}
+ENV CUDA_VISIBLE_DEVICES=0
 CMD ./bin/bench.sh

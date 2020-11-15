@@ -100,7 +100,7 @@ rodinia_test_cases = [
     TestCase(name='pathfinder',
              path='./GPA-Benchmark/rodinia/pathfinder',
              command='./pathfinder',
-             options=['100000', '100', '20', '>', 'result.txt'],
+             options=['100000', '100', '20'],
              kernels=['dynproc_kernel'],
              versions=['', '-opt']),
     TestCase(name='srad',
@@ -181,6 +181,8 @@ def pipe_read(command, err=False):
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
+    #print(stdout)
+    #print(stderr)
     if err:
         return stderr
     return stdout
@@ -279,7 +281,7 @@ def bench(test_cases):
         for kernel in kernel_times:
             cur_version, cur_time = '', 0.0
             nxt_version, nxt_time = '', 0.0
-            for version in kernel_times[kernel]:
+            for version in test_case.versions:
                 version_times = kernel_times[kernel][version]
                 unit = ''
                 nxt_time_float = 0.0

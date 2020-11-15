@@ -5,7 +5,7 @@ FROM nvidia/cuda:11.0-devel-ubuntu20.04
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get -y update
-RUN apt-get -y install curl git python gfortran
+RUN apt-get -y install curl git python gfortran wget
 
 WORKDIR /staging
 RUN git clone https://github.com/spack/spack.git && cd spack && git checkout fafff0c6c0142e62e0f6b65b1d53ea58feb7fc7a
@@ -26,4 +26,5 @@ RUN git clone --recursive https://github.com/Jokeren/GPA.git
 WORKDIR GPA
 RUN mkdir build
 RUN ./bin/install.sh $(pwd)/build $(spack find --path boost | tail -n 1 | cut -d ' ' -f 3 | sed 's,/*[^/]\+/*$,,')
-ENV export PATH=$(pwd)/build/bin:${PATH}
+ENV PATH=$(pwd)/build/bin:${PATH}
+CMD ./bin/bench.sh

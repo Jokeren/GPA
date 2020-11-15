@@ -5,7 +5,7 @@ import sys
 import pprint
 import shutil
 
-ITERS=5
+ITERS=10
 DEBUG=False
 
 TestCase = namedtuple(
@@ -381,8 +381,9 @@ if case_name == 'advise':
     test_cases = setup('')
     advise(test_cases)
 else:
-    if case_name == 'debug':
+    if case_name is None:
+        case_name = ''
+    elif case_name == 'debug':
         DEBUG = True
-    case_name = ''
     test_cases = setup(case_name)
     bench(test_cases)

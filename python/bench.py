@@ -132,9 +132,9 @@ quicksilver_test_cases = [TestCase(name='quicksilver',
                                    command='./qs',
                                    options=[],
                                    kernels=['cycleTracking_Kernel'],
-                                   versions=['d00f2dd026234238b60610c818cd7f64e8a5658e',
-                                             'b31bbdb285222c7b0da43069477f59bc28bc4567',
-                                             '97002d957a22cb00a42065c4e40c50f186f5b52d'])]
+                                   versions=['9ed5d6edb68dfaf6da7801df831f69a5425788f4',
+                                             '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
+                                             'c43974e2327ff69fb48fb814f6cffc66953312ce'])]
 pelec_test_cases = [TestCase(name='pelec',
                              path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
                              command='./PeleC3d.gnu.CUDA.ex',

@@ -188,7 +188,7 @@ exatensor_test_cases = [TestCase(name='exatensor',
                                  options=[],
                                  kernels=['tensor_transpose'],
                                  versions=['', '-opt1', '-opt2'],
-                                 version_names=['origin', 'strength reduction'])]
+                                 version_names=['origin', 'strength reduction', 'memory transaction reduction'])]
 
 
 def setup(case_name):

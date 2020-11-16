@@ -5,7 +5,7 @@ FROM nvidia/cuda:11.0-devel-ubuntu20.04
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get -y update
-RUN apt-get -y install curl wget git python3 python3-pip gfortran
+RUN apt-get -y install curl wget git python python3 python3-pip gfortran
 RUN pip3 install numpy
 
 WORKDIR /staging

@@ -340,6 +340,9 @@ def bench(test_cases):
                     elif unit == 'ns':
                         nxt_time_unit = nxt_time * 1e9
                         cur_time_unit = cur_time * 1e9
+                    else:
+                        nxt_time_unit = nxt_time
+                        cur_time_unit = cur_time
                     print('{} {} ({:.3f}{}) vs {} ({:.3f}{}) : {}x speedup '.format(
                         test_case.name, nxt_version, nxt_time_unit, unit, cur_version, cur_time_unit, unit, speedup))
                 cur_version = nxt_version

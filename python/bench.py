@@ -9,7 +9,7 @@ ITERS = 10
 DEBUG = False
 
 TestCase = namedtuple(
-    'TestCase', ['name', 'path', 'command', 'options', 'kernels', 'versions'])
+    'TestCase', ['name', 'path', 'command', 'options', 'kernels', 'versions', 'version_names'])
 
 rodinia_test_cases = [
     TestCase(name='b+tree',
@@ -18,105 +18,122 @@ rodinia_test_cases = [
              options=['file', '../../data/b+tree/mil.txt',
                       'command', '../../data/b+tree/command.txt'],
              kernels=['findRangeK'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'code reorder']),
     TestCase(name='backprop',
              path='./GPA-Benchmark/rodinia/backprop',
              command='./backprop',
              options=['65536'],
              kernels=['bpnn_layerforward_CUDA'],
-             versions=['', '-opt1', '-opt2']),
+             versions=['', '-opt1', '-opt2'],
+             version_names=['origin', 'warp balance', 'strength reduction']),
     TestCase(name='bfs',
              path='./GPA-Benchmark/rodinia/bfs',
              command='./bfs',
              options=['../../data/bfs/graph1MW_6.txt'],
              kernels=['Kernel'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'loop unrolling']),
     TestCase(name='cfd',
              path='./GPA-Benchmark/rodinia/cfd',
              command='./euler3d',
              options=['../../data/cfd/fvcorr.domn.097K'],
              kernels=['cuda_compute_flux'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'fast math']),
     TestCase(name='gaussian',
              path='./GPA-Benchmark/rodinia/gaussian',
              command='./gaussian',
              options=['-s', '1024'],
              kernels=['Fan2'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'thread increase']),
     TestCase(name='heartwall',
              path='./GPA-Benchmark/rodinia/heartwall',
              command='./heartwall',
              options=['../../data/heartwall/test.avi', '20'],
              kernels=['kernel'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'loop unrolling']),
     TestCase(name='hotspot',
              path='./GPA-Benchmark/rodinia/hotspot',
              command='./hotspot',
              options=['512', '2', '2', '../../data/hotspot/temp_512',
                       '../../data/hotspot/power_512', 'output.out'],
              kernels=['calculate_temp'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'strength reduction']),
     TestCase(name='huffman',
              path='./GPA-Benchmark/rodinia/huffman',
              command='./pavle',
              options=['../../data/huffman/test1024_H2.206587175259.in'],
              kernels=['vlc_encode_kernel_sm64huff'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'warp balance']),
     TestCase(name='kmeans',
              path='./GPA-Benchmark/rodinia/kmeans',
              command='./kmeans',
              options=['-o', '-i', '../../data/kmeans/kdd_cup'],
              kernels=['kmeansPoint'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'loop unrolling']),
     TestCase(name='lavaMD',
              path='./GPA-Benchmark/rodinia/lavaMD',
              command='./lavaMD',
              options=['-boxes1d', '10'],
              kernels=['kernel_gpu_cuda'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'loop unrolling']),
     TestCase(name='lud',
              path='./GPA-Benchmark/rodinia/lud',
              command='./cuda/lud_cuda',
              options=['-s', '256', '-v'],
              kernels=['lud_diagonal'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'code reorder']),
     TestCase(name='myocyte',
              path='./GPA-Benchmark/rodinia/myocyte',
              command='./myocyte.out',
              options=['100', '100', '1'],
              kernels=['solver_2'],
-             versions=['', '-opt1', '-opt2']),
+             versions=['', '-opt1', '-opt2'],
+             version_names=['origin', 'fast math', 'function spliting']),
     TestCase(name='nw',
              path='./GPA-Benchmark/rodinia/nw',
              command='./needle',
              options=['2048', '10'],
              kernels=['needle_cuda_shared_1'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'warp balance']),
     TestCase(name='particlefilter',
              path='./GPA-Benchmark/rodinia/particlefilter',
              command='./particlefilter_float',
              options=['-x', '128', '-y', '128', '-z', '10', '-np', '1000'],
              kernels=['likelihood_kernel'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'block increase']),
     TestCase(name='pathfinder',
              path='./GPA-Benchmark/rodinia/pathfinder',
              command='./pathfinder',
              options=['100000', '100', '20'],
              kernels=['dynproc_kernel'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'code reorder']),
     TestCase(name='srad',
              path='./GPA-Benchmark/rodinia/srad/srad_v1',
              command='./srad',
              options=['100', '0.5', '502', '458'],
              kernels=['reduce'],
-             versions=['', '-opt']),
+             versions=['', '-opt'],
+             version_names=['origin', 'warp balance']),
     TestCase(name='streamcluster',
              path='./GPA-Benchmark/rodinia/streamcluster',
              command='./sc_gpu',
              options=['10', '20', '256', '1024', '1024',
                       '1000', 'none', 'output.txt', '1'],
              kernels=['kernel_compute_cost'],
-             versions=['', '-opt'])
+             versions=['', '-opt'],
+             version_names=['origin', 'block increase'])
 ]
 
 minimod_test_cases = [TestCase(name='minimod',
@@ -126,7 +143,8 @@ minimod_test_cases = [TestCase(name='minimod',
                                kernels=['target_pml_3d_kernel'],
                                versions=['cuda_smem_u_s_opt-gpu',
                                          'cuda_smem_u_fastmath_s_opt-gpu',
-                                         'cuda_smem_u_both_s_opt-gpu'])]
+                                         'cuda_smem_u_both_s_opt-gpu'],
+                               version_names=['origin', 'fast math', 'code reorder'])]
 quicksilver_test_cases = [TestCase(name='quicksilver',
                                    path='./GPA-Benchmark/Quicksilver/src',
                                    command='./qs',
@@ -134,7 +152,8 @@ quicksilver_test_cases = [TestCase(name='quicksilver',
                                    kernels=['cycleTracking_Kernel'],
                                    versions=['9ed5d6edb68dfaf6da7801df831f69a5425788f4',
                                              '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
-                                             'c43974e2327ff69fb48fb814f6cffc66953312ce']),
+                                             'c43974e2327ff69fb48fb814f6cffc66953312ce'],
+                                   version_names=['origin', 'function inlining', 'register reuse']),
                           TestCase(name='quicksilver',
                                    path='./GPA-Benchmark/Quicksilver/src',
                                    command='./qs',
@@ -142,7 +161,8 @@ quicksilver_test_cases = [TestCase(name='quicksilver',
                                    kernels=['cycleTracking_Kernel'],
                                    versions=['9ed5d6edb68dfaf6da7801df831f69a5425788f4',
                                              '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
-                                             'c43974e2327ff69fb48fb814f6cffc66953312ce'])
+                                             'c43974e2327ff69fb48fb814f6cffc66953312ce'],
+                                   version_names=['origin', 'function inlining', 'register reuse'])
                           ]
 pelec_test_cases = [TestCase(name='pelec',
                              path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
@@ -150,20 +170,23 @@ pelec_test_cases = [TestCase(name='pelec',
                              options=['./inputs_ex'],
                              kernels=['react_state'],
                              versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
-                                       'f125d78e327755c90154e26eea7076a4c1cb3832']),
+                                       'f125d78e327755c90154e26eea7076a4c1cb3832'],
+                             version_names=['origin', 'block increase']),
                     TestCase(name='pelec',
                              path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
                              command='./PeleC3d.gnu.CUDA.ex',
                              options=['./inputs_ex', 'max_step', '500'],
                              kernels=['react_state'],
                              versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
-                                       'f125d78e327755c90154e26eea7076a4c1cb3832'])]
+                                       'f125d78e327755c90154e26eea7076a4c1cb3832'],
+                             version_names=['origin', 'block increase'])]
 exatensor_test_cases = [TestCase(name='exatensor',
                                  path='./GPA-Benchmark/ExaTENSOR/exatensor',
                                  command='./main',
                                  options=[],
                                  kernels=['tensor_transpose'],
-                                 versions=['', '-opt1', '-opt2'])]
+                                 versions=['', '-opt1', '-opt2'],
+                                 version_names=['origin', 'strength reduction'])]
 
 
 def setup(case_name):
@@ -218,7 +241,9 @@ def bench(test_cases):
     path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
     for test_case in test_cases:
         kernel_times = dict()
-        for version in test_case.versions:
+        for i in range(len(test_case.versions)):
+            version = test_case.versions[i]
+            version_name = test_case.version_names[i]
             if version == '':
                 # original version, do nothing
                 os.chdir(test_case.path)
@@ -244,7 +269,7 @@ def bench(test_cases):
                 cleanup()
 
             print('Profile ' + test_case.name + ' ' +
-                  version + ' ' + str(test_case.options))
+                  version_name + ' ' + str(test_case.options))
 
             for i in range(ITERS):
                 if test_case.name == 'quicksilver':
@@ -286,13 +311,13 @@ def bench(test_cases):
                             time = columns[1]
                         if find is True:
                             if kernel in kernel_times:
-                                if version in kernel_times[kernel]:
-                                    kernel_times[kernel][version].append(time)
+                                if version_name in kernel_times[kernel]:
+                                    kernel_times[kernel][version_name].append(time)
                                 else:
-                                    kernel_times[kernel][version] = [time]
+                                    kernel_times[kernel][version_name] = [time]
                             else:
                                 kernel_times[kernel] = dict()
-                                kernel_times[kernel][version] = [time]
+                                kernel_times[kernel][version_name] = [time]
                             break
 
             # back to top dir
@@ -301,8 +326,8 @@ def bench(test_cases):
         for kernel in kernel_times:
             cur_version, cur_time = '', 0.0
             nxt_version, nxt_time = '', 0.0
-            for version in test_case.versions:
-                version_times = kernel_times[kernel][version]
+            for version_name in test_case.version_names:
+                version_times = kernel_times[kernel][version_name]
                 unit = ''
                 nxt_time_float = 0.0
                 for i in range(0, len(version_times)):
@@ -327,7 +352,7 @@ def bench(test_cases):
                 if cur_version == '':
                     nxt_version = 'origin'
                 else:
-                    nxt_version = version
+                    nxt_version = version_name
                     speedup = round(cur_time / nxt_time, 2)
                     nxt_time_unit = 0.0
                     cur_time_unit = 0.0
@@ -352,7 +377,9 @@ def bench(test_cases):
 def advise(test_cases):
     path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
     for test_case in test_cases:
-        for version in test_case.versions:
+        for i in range(len(test_case.versions)):
+            version = test_case.versions[i]
+            version_name = test_case.version_names[i]
             if version == '':
                 # original version, do nothing
                 os.chdir(test_case.path)
@@ -374,11 +401,11 @@ def advise(test_cases):
             else:
                 cleanup()
 
-            print('Warmup ' + test_case.name + ' ' + version)
+            print('Warmup ' + test_case.name + ' ' + version_name)
             for _ in range(1):
                 pipe_read([test_case.command] + test_case.options)
 
-            print('Profile ' + test_case.name + ' ' + version)
+            print('Profile ' + test_case.name + ' ' + version_name)
             pipe_read(['gpa', test_case.command] +
                       test_case.options).decode('utf-8')
 
@@ -387,10 +414,10 @@ def advise(test_cases):
                 pass
             elif version.find('-opt') != -1:
                 # optimized version, change dir
-                shutil.move('gpa-database', 'gpa-database-' + version)
+                shutil.move('gpa-database', 'gpa-database-' + version_name)
             else:
                 # git version, checkout
-                shutil.move('gpa-database', 'gpa-database-' + version)
+                shutil.move('gpa-database', 'gpa-database-' + version_name)
 
             shutil.rmtree('gpa-measurements')
 

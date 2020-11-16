@@ -4,6 +4,7 @@ import os
 import sys
 import pprint
 import shutil
+import numpy as np
 
 ITERS = 10
 DEBUG = False
@@ -269,8 +270,9 @@ def bench(test_cases):
             else:
                 cleanup()
 
-            print('Profile ' + test_case.name + ' ' +
-                  version_name + ' ' + str(test_case.options))
+            if DEBUG:
+                print('Profile ' + test_case.name + ' ' +
+                      version_name + ' ' + str(test_case.options))
 
             for i in range(ITERS):
                 if test_case.name == 'quicksilver':
@@ -325,36 +327,41 @@ def bench(test_cases):
             os.chdir(path)
 
         for kernel in kernel_times:
-            cur_version, cur_time = '', 0.0
-            nxt_version, nxt_time = '', 0.0
+            cur_version, cur_times = '', []
+            nxt_version, nxt_times = '', []
             for version_name in test_case.version_names:
                 version_times = kernel_times[kernel][version_name]
                 unit = ''
-                nxt_time_float = 0.0
+                nxt_times = []
                 for i in range(0, len(version_times)):
                     if version_times[i].find('us') != -1:
-                        nxt_time_float += float(
-                            version_times[i].replace('us', '')) / 1e6
+                        nxt_times.append(float(
+                            version_times[i].replace('us', '')) / 1e6)
                         unit = 'us'
                     elif version_times[i].find('ms') != -1:
-                        nxt_time_float += float(
-                            version_times[i].replace('ms', '')) / 1e3
+                        nxt_times.append(float(
+                            version_times[i].replace('ms', '')) / 1e3)
                         unit = 'ms'
                     elif version_times[i].find('ns') != -1:
-                        nxt_time_float += float(
-                            version_times[i].replace('ns', '')) / 1e9
+                        nxt_times.append(float(
+                            version_times[i].replace('ns', '')) / 1e9)
                         unit = 'ns'
                     else:
-                        nxt_time_float += float(
-                            version_times[i].replace('s', ''))
+                        nxt_times.append(float(
+                            version_times[i].replace('s', '')))
                         unit = 's'
                 # Average
-                nxt_time = nxt_time_float / len(version_times)
                 if cur_version == '':
                     nxt_version = 'origin'
                 else:
                     nxt_version = version_name
-                    speedup = round(cur_time / nxt_time, 2)
+                    nxt_times_np = np.array(nxt_times)
+                    cur_times_np = np.array(cur_times)
+                    cur_time = np.mean(cur_times_np)
+                    nxt_time = np.mean(nxt_times_np)
+                    speedups = cur_times_np / nxt_times_np
+                    speedup_avg = round(np.mean(speedups), 2)
+                    speedup_var = round(np.std(speedups), 2)
                     nxt_time_unit = 0.0
                     cur_time_unit = 0.0
                     if unit == 'us':
@@ -369,10 +376,10 @@ def bench(test_cases):
                     else:
                         nxt_time_unit = nxt_time
                         cur_time_unit = cur_time
-                    print('{} {} ({:.3f}{}) vs {} ({:.3f}{}) : {}x speedup '.format(
-                        test_case.name, nxt_version, nxt_time_unit, unit, cur_version, cur_time_unit, unit, speedup))
+                    print('{} {} ({:.3f}{}) vs {} ({:.3f}{}) : {}+-{}x speedup '.format(
+                        test_case.name, nxt_version, nxt_time_unit, unit, cur_version, cur_time_unit, unit, speedup_avg, speedup_var))
                 cur_version = nxt_version
-                cur_time = nxt_time
+                cur_times = nxt_times[:]
 
 
 def advise(test_cases):

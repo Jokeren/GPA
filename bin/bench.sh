@@ -7,7 +7,7 @@ if [ ! -d GPA-Benchmark/data ]; then
 fi
 
 if [ $# -eq 1 ]; then
-  python ./python/bench.py $1
+  python3 ./python/bench.py $1
 else
-  python ./python/bench.py
+  python3 ./python/bench.py
 fi

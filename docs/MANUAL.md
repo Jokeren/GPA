@@ -13,6 +13,7 @@ gpa.advice is generated under `gpa-database` for each benchmark. Currently, we p
  - **Achieved Speedup**: 1.15x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #1 GPUWarpBalance optimizer suggests removing synchronizations on several lines. We remove the synchronization on Line 35, which contributes to 1.15x speedup as projected. Due the the program's constraint, other synchronizations cannot be removed.
 
  - **Kernel**: `bpnn_layerforward_CUDA`
@@ -21,6 +22,7 @@ The #1 GPUWarpBalance optimizer suggests removing synchronizations on several li
  - **Achieved Speedup**: 1.21x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #2 GPUStrengthReduction optimizer indicates inlined division functions on Line 40 cause high stalls. Using the `fast_math` flag does not help because SFU instructions are still low throughput and high latency. Therefore, we use cheap bit-wise operations to replace integer divisions.
 
 ### rodinia/bfs
@@ -30,6 +32,7 @@ The #2 GPUStrengthReduction optimizer indicates inlined division functions on Li
  - **Achieved Speedup**: 1.10x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #2 GPULoopUnrolling optimizer suggests unrolling the loop at Line 28. We manually unroll the loop by a factor of four to hide latencies. There is a large gap between the achieved speedup and the estimate speedup. In this case, we found that the workload is highly unbalanced such that most threads only execute less than four iterations of the loop. Thus, loop unrolling benefits only a small number of threads.
 
 ### rodinia/b+tree
@@ -39,6 +42,7 @@ The #2 GPULoopUnrolling optimizer suggests unrolling the loop at Line 28. We man
  - **Achieved Speedup**: 1.16x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #2 GPUCodeReorder optimizer suggests the indirect memory accesses on Line 62 and Line 29 can be decomposed to reorder instructions.
 
 ### rodinia/cfd
@@ -48,6 +52,7 @@ The #2 GPUCodeReorder optimizer suggests the indirect memory accesses on Line 62
  - **Achieved Speedup**: 1.68x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #1 GPUCodeReorder optimizer suggests reordering memory load instructions to hide latency. And the #2 GPUFastMath optimizer suggests using fast math functions. Note that in this code reorder itself helps only little because math functions are not inlined such that some barrier dependencies are resolved before the functions are called. We enable `--use_fast_math` to inline math functions (and reduce instructions), letting the compilers to reorder instructions. Thus, the estimate speedup is a combination of GPUCodeReoder and GPUFastMath optimizers.
 
 ### rodinia/gaussian
@@ -57,6 +62,7 @@ The #1 GPUCodeReorder optimizer suggests reordering memory load instructions to 
  - **Achieved Speedup**: 3.32x
  - **Section**: Parallel Optimizer
  - **Description**:
+ 
 The #1 GPUOccupancyIncrease optimizer suggests increasing the number of threads to increase occupancy.
 
 ### rodinia/heartwall
@@ -66,6 +72,7 @@ The #1 GPUOccupancyIncrease optimizer suggests increasing the number of threads 
  - **Achieved Speedup**: 1.18x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #2 GPULoopUnroll optimizer suggests unrolling two nested loops. We use `pragma unroll` for the outer loop which has an estimate speedup of 1.17x. Unroll the inner loop does not achieve the estimate 1.14x by GPA with NVCC-11.0. However, NVCC-11.2 does a better job in loop unrolling and and resulting in 1.33x speedup, which is close to our estimate.
 
 ### rodinia/hotspot
@@ -75,6 +82,7 @@ The #2 GPULoopUnroll optimizer suggests unrolling two nested loops. We use `prag
  - **Achieved Speedup**: 1.60x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #2 GPUStrengthReduction optimizer suggests replacing expensive divisions with reciprocal.
 
 ### rodinia/huffman
@@ -84,6 +92,7 @@ The #2 GPUStrengthReduction optimizer suggests replacing expensive divisions wit
  - **Achieved Speedup**:  1.07x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #1 GPUWarpBalance optimizer points out several unbalanced regions. We replace the top one on Line 108 that performs synchronization within warps with syncwarp.
 
 ### rodinia/kmeans
@@ -93,6 +102,7 @@ The #1 GPUWarpBalance optimizer points out several unbalanced regions. We replac
  - **Achieved Speedup**: 1.20x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #2 GPULoopUnrolling optimizer suggests unrolling the loop at Line 86.
  
 ### rodinia/lavaMD
@@ -102,6 +112,7 @@ The #2 GPULoopUnrolling optimizer suggests unrolling the loop at Line 86.
  - **Achieved Speedup**: 1.12x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #2 GPULoopUnrolling optimizer suggests unrolling the loop at Line 145 which has a large constant trip count. Note the actual benefits of unrolling may be diminished with a newer version of NVCC which does better auto unrolling.
 
 ### rodinia/lud
@@ -111,6 +122,7 @@ The #2 GPULoopUnrolling optimizer suggests unrolling the loop at Line 145 which 
  - **Achieved Speedup**: 1.40x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #1 GPUCodeReorder optimizer indicates high WAR and SMEM latencies, which implies high register dependencies. We note data are fetched from the shared memory in every iteration. Hence, we can use a temporary variable to store and update values. Optimizing the top three hot regions in total leads to a 1.41x speedup. Because regions are not overlapped. the overall speedup is a little bit higher than the sum of speedups from different regions.
 
 ### rodinia/myocyte
@@ -120,6 +132,7 @@ The #1 GPUCodeReorder optimizer indicates high WAR and SMEM latencies, which imp
  - **Achieved Speedup**: 1.13x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 Though there are a list of optimizers pointing of promising optimizing spots, the kernel contains large and complicated code. Instead of manually adjusting lines, we adopt the #6 GPUFastMath optimizer to enable fast math functions.
 
  - **Kernel**: `solver_2`
@@ -128,6 +141,7 @@ Though there are a list of optimizers pointing of promising optimizing spots, th
  - **Achieved Speedup**: 1.02x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 Because of the large kernel that contains a bunch of GPU device functions, the GPUFunctionSplit optimizer ranks the fourth in the list. It is worth noting that not every inlined function can or should be split from the inline site, since the benefits of reducing instruction cache miss might be less than the overhead of increasing the number of instructions. In practice, we only find the third hot function (`kernel_cam_2`) has actual benefits.
 
 ### rodinia/nw
@@ -137,6 +151,7 @@ Because of the large kernel that contains a bunch of GPU device functions, the G
  - **Achieved Speedup**: 1.10x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 Based on the #3 GPUWarpBalance optimizer, we have a list of hot synchronization instructions. Among them, we can safely erase Line 134 and Line 142.
 
 ### rodinia/particlefilter
@@ -146,6 +161,7 @@ Based on the #3 GPUWarpBalance optimizer, we have a list of hot synchronization 
  - **Achieved Speedup**: 1.75x
  - **Section**: Parallel Optimizer
  - **Description**:
+ 
 The GPUBlockIncrease optimizer suggests adjusting the number of threads per block. The profiling results shows we used two blocks, which takes 1/40 SMs of a V100 GPU. We reduce the number of threads per block from 512 to 256 to use 1/20 SMs of a GPU.
 
 ### rodinia/streamcluster
@@ -155,6 +171,7 @@ The GPUBlockIncrease optimizer suggests adjusting the number of threads per bloc
  - **Achieved Speedup**: 1.31x
  - **Section**: Parallel Optimizer
  - **Description**:
+ 
 Similar to particlefilter, we increase the number of blocks according to the GPUBlockIncrease optimizer.
 
 ### rodinia/sradv1
@@ -164,6 +181,7 @@ Similar to particlefilter, we increase the number of blocks according to the GPU
  - **Achieved Speedup**: 1.03x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #1 GPUWarpBalance optimizer shows a list of expansive synchronization instructions. The kernel adopts a reduce pattern to sum values among all the threads. On Line 64, we reduce the number of synchronizations by not performing reduce in the last few steps of reduction and instead let thread 1 sums up all values directly. 
 
 ### rodinia/pathfinder
@@ -173,6 +191,7 @@ The #1 GPUWarpBalance optimizer shows a list of expansive synchronization instru
  - **Achieved Speedup**: 1.04x
  - **Section**: Code Optimizer
  - **Description**:
+ 
 The #1 GPUCodeReorder optimizer suggests reordering a global memory read in a loop of the pathfinder benchmark. The estimated speedup is 30% higher than we achieved because instructions after synchronizations depend on the results before synchronizations. Therefore, the instructions we can use to hide latency are limited in a fine-grained scope in which the distance between the dependent instruction pairs is short no matter how we arrange instructions.
 
 ## Visualization of instruction blames

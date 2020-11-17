@@ -5,9 +5,11 @@ import sys
 import pprint
 import shutil
 import numpy as np
+import argparse
 
 ITERS = 10
 DEBUG = False
+VERBOSE = False
 
 TestCase = namedtuple(
     'TestCase', ['name', 'path', 'command', 'options', 'kernels', 'versions', 'version_names'])
@@ -270,7 +272,7 @@ def bench(test_cases):
             else:
                 cleanup()
 
-            if DEBUG:
+            if VERBOSE:
                 print('Profile ' + test_case.name + ' ' +
                       version_name + ' ' + str(test_case.options))
 
@@ -315,7 +317,8 @@ def bench(test_cases):
                         if find is True:
                             if kernel in kernel_times:
                                 if version_name in kernel_times[kernel]:
-                                    kernel_times[kernel][version_name].append(time)
+                                    kernel_times[kernel][version_name].append(
+                                        time)
                                 else:
                                     kernel_times[kernel][version_name] = [time]
                             else:
@@ -409,11 +412,13 @@ def advise(test_cases):
             else:
                 cleanup()
 
-            print('Warmup ' + test_case.name + ' ' + version_name)
+            if VERBOSE:
+                print('Warmup ' + test_case.name + ' ' + version_name)
             for _ in range(1):
                 pipe_read([test_case.command] + test_case.options)
-
-            print('Profile ' + test_case.name + ' ' + version_name)
+            
+            if VERBOSE:
+                print('Profile ' + test_case.name + ' ' + version_name)
             pipe_read(['gpa', test_case.command] +
                       test_case.options).decode('utf-8')
 
@@ -426,6 +431,8 @@ def advise(test_cases):
             else:
                 # git version, checkout
                 shutil.move('gpa-database', 'gpa-database-' + version_name)
+            
+            print(test_case.path + ' ' + version_name + ' gpa-database done...')
 
             shutil.rmtree('gpa-measurements')
 
@@ -433,11 +440,25 @@ def advise(test_cases):
             os.chdir(path)
 
 
-case_name = None
-if len(sys.argv) > 1:
-    case_name = str(sys.argv[1])
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--debug', action='store_true',
+                    default=False, help='print debug message')
+parser.add_argument('-v', '--verbose', action='store_true',
+                    default=False, help='print execution message')
+parser.add_argument(
+    '-m', '--mode', choices=['bench', 'advise', 'show'], default='bench', help='choose a mode')
+parser.add_argument('-c', '--case', help='choose a test case')
+args = parser.parse_args()
 
-if case_name == 'show':
+test_cases = setup(args.case)
+
+if args.debug:
+    DEBUG = True
+
+if args.verbose:
+    VERBOSE = True
+
+if args.mode == 'show':
     pp = pprint.PrettyPrinter()
     pp.pprint('rodinia')
     pp.pprint(rodinia_test_cases)
@@ -449,13 +470,7 @@ if case_name == 'show':
     pp.pprint(quicksilver_test_cases)
     pp.pprint('pelec')
     pp.pprint(pelec_test_cases)
-if case_name == 'advise':
-    test_cases = setup('')
+elif args.mode == 'advise':
     advise(test_cases)
 else:
-    if case_name is None:
-        case_name = ''
-    elif case_name == 'debug':
-        DEBUG = True
-    test_cases = setup(case_name)
     bench(test_cases)

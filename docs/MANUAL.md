@@ -4,6 +4,10 @@ gpa.advice is generated under `gpa-database` for each benchmark. Currently, we p
 
 ## Format
 
+![GPA report](https://github.com/Jokeren/GPA/blob/master/docs/report.png)
+
+The above figure shows a dissect of a GPA report of the ExaTensor example. GPA ranks GPU kernels based on their running time. For each GPU kernel, GPA groups optimization suggestions into *Code Optimizers*, *Parallel Optimizers*, and *Binary Optimizers* sections. The order of suggestions in each section is determinted by their corresponding estimate speedup. For each suggestion, GPA lists several hot code and its context and provide hints about transforming the code to gain estimate speedups.
+
 ## Benchmarks
 
 ### rodinia/backprop
@@ -195,3 +199,7 @@ The #1 GPUWarpBalance optimizer shows a list of expansive synchronization instru
 The #1 GPUCodeReorder optimizer suggests reordering a global memory read in a loop of the pathfinder benchmark. The estimated speedup is 30% higher than we achieved because instructions after synchronizations depend on the results before synchronizations. Therefore, the instructions we can use to hide latency are limited in a fine-grained scope in which the distance between the dependent instruction pairs is short no matter how we arrange instructions.
 
 ## Visualization of instruction blames
+
+Using `hpcviewer gpu-database` command opens up a GUI that presents the profile view of the execution, where you can click the *flame* button to drill down the hot code and view instruction blames' source and destination. We plan to integrate the advice report into the GUI in the near future.
+
+![GPA gui](https://github.com/Jokeren/GPA/blob/master/docs/gui.png)

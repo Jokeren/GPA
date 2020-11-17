@@ -416,7 +416,7 @@ def advise(test_cases):
                 print('Warmup ' + test_case.name + ' ' + version_name)
             for _ in range(1):
                 pipe_read([test_case.command] + test_case.options)
-            
+
             if VERBOSE:
                 print('Profile ' + test_case.name + ' ' + version_name)
             pipe_read(['gpa', test_case.command] +
@@ -431,7 +431,7 @@ def advise(test_cases):
             else:
                 # git version, checkout
                 shutil.move('gpa-database', 'gpa-database-' + version_name)
-            
+
             print(test_case.path + ' ' + version_name + ' gpa-database done...')
 
             shutil.rmtree('gpa-measurements')
@@ -450,13 +450,15 @@ parser.add_argument(
 parser.add_argument('-c', '--case', help='choose a test case')
 args = parser.parse_args()
 
-test_cases = setup(args.case)
-
 if args.debug:
     DEBUG = True
 
 if args.verbose:
     VERBOSE = True
+
+case_name = ''
+if args.case is not None:
+    case_name = args.case
 
 if args.mode == 'show':
     pp = pprint.PrettyPrinter()
@@ -471,6 +473,8 @@ if args.mode == 'show':
     pp.pprint('pelec')
     pp.pprint(pelec_test_cases)
 elif args.mode == 'advise':
+    test_cases = setup(case_name)
     advise(test_cases)
 else:
+    test_cases = setup(case_name)
     bench(test_cases)

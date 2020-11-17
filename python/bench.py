@@ -226,6 +226,7 @@ def pipe_read(command, err=False):
                                stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     if DEBUG:
+        print(stdout)
         print(stderr)
     if err:
         return stderr

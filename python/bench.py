@@ -420,8 +420,14 @@ def advise(test_cases):
 
             if VERBOSE:
                 print('Profile ' + test_case.name + ' ' + version_name)
-            pipe_read(['gpa', test_case.command] +
-                      test_case.options).decode('utf-8')
+
+            if DEBUG:
+                pipe_read(['gpa', '-v', test_case.command] +
+                          test_case.options)
+                pipe_read(['cat', './gpa.log'])
+            else:
+                pipe_read(['gpa', test_case.command] +
+                          test_case.options)
 
             if version == '':
                 # original version, do nothing

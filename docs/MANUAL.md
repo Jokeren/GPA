@@ -13,16 +13,16 @@ The above figure shows a dissect of a GPA report of the ExaTensor example. GPA r
 ### rodinia/backprop
  - **Kernel**: `bpnn_layerforward_CUDA`
  - **Version**: origin
- - **Estimate Speedup**: 1.15x
+ - **Estimate Speedup**: 1.14x
  - **Achieved Speedup**: 1.15x
  - **Section**: Code Optimizer
  - **Description**:
  
-The #1 GPUWarpBalance optimizer suggests removing synchronizations on several lines. We remove the synchronization on Line 35, which contributes to 1.15x speedup as projected. Due the the program's constraint, other synchronizations cannot be removed.
+The #1 GPUWarpBalance optimizer suggests removing synchronizations on several lines. We remove the synchronization on Line 35 and Line 39 and remove the branch condition on Line 32 to mitigate the synchronization on Line 43, which contributes to 1.15x speedup as projected. Due the the program's constraint, other synchronizations cannot be removed.
 
  - **Kernel**: `bpnn_layerforward_CUDA`
  - **Version**: opt1
- - **Estimate Speedup**: 1.10x
+ - **Estimate Speedup**: 1.24x
  - **Achieved Speedup**: 1.21x
  - **Section**: Code Optimizer
  - **Description**:
@@ -32,8 +32,8 @@ The #2 GPUStrengthReduction optimizer indicates inlined division functions on Li
 ### rodinia/bfs
  - **Kernel**: `Kernel`
  - **Version**: origin
- - **Estimate Speedup**: 1.58x
- - **Achieved Speedup**: 1.10x
+ - **Estimate Speedup**: 1.59x
+ - **Achieved Speedup**: 1.12x
  - **Section**: Code Optimizer
  - **Description**:
  
@@ -62,8 +62,8 @@ The #1 GPUCodeReorder optimizer suggests reordering memory load instructions to 
 ### rodinia/gaussian
  - **Kernel**: `Fan2`
  - **Version**: origin
- - **Estimate Speedup**: 3.30x
- - **Achieved Speedup**: 3.32x
+ - **Estimate Speedup**: 3.32x
+ - **Achieved Speedup**: 3.58x
  - **Section**: Parallel Optimizer
  - **Description**:
  
@@ -102,8 +102,8 @@ The #1 GPUWarpBalance optimizer points out several unbalanced regions. We replac
 ### rodinia/kmeans
  - **Kernel**: `kmeansPoint`
  - **Version**: origin
- - **Estimate Speedup**: 1.11x
- - **Achieved Speedup**: 1.20x
+ - **Estimate Speedup**: 1.20x
+ - **Achieved Speedup**: 1.11x
  - **Section**: Code Optimizer
  - **Description**:
  
@@ -152,7 +152,7 @@ Because of the large kernel that contains a bunch of GPU device functions, the G
  - **Kernel**: `needle_cuda_shared_1`
  - **Version**: origin
  - **Estimate Speedup**: 1.07x
- - **Achieved Speedup**: 1.10x
+ - **Achieved Speedup**: 1.09x
  - **Section**: Code Optimizer
  - **Description**:
  
@@ -172,7 +172,7 @@ The GPUBlockIncrease optimizer suggests adjusting the number of threads per bloc
  - **Kernel**: `kernel_compute_cost`
  - **Version**: origin
  - **Estimate Speedup**: 1.52x
- - **Achieved Speedup**: 1.31x
+ - **Achieved Speedup**: 1.35x
  - **Section**: Parallel Optimizer
  - **Description**:
  
@@ -181,7 +181,7 @@ Similar to particlefilter, we increase the number of blocks according to the GPU
 ### rodinia/sradv1
  - **Kernel**: `reduce`
  - **Version**: origin
- - **Estimate Speedup**: 1.08x
+ - **Estimate Speedup**: 1.10x
  - **Achieved Speedup**: 1.03x
  - **Section**: Code Optimizer
  - **Description**:
@@ -191,7 +191,7 @@ The #1 GPUWarpBalance optimizer shows a list of expansive synchronization instru
 ### rodinia/pathfinder
  - **Kernel**: `dynproc_kernel`
  - **Version**: origin
- - **Estimate Speedup**: 1.35x
+ - **Estimate Speedup**: 1.31x
  - **Achieved Speedup**: 1.04x
  - **Section**: Code Optimizer
  - **Description**:

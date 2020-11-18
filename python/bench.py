@@ -283,7 +283,7 @@ def bench(test_cases):
                                     test_case.options).decode('utf-8')
                 elif test_case.name == 'minimod':
                     buf = pipe_read(
-                        ['./main_' + version + '_nvcc'] + test_case.options).decode('utf-8')
+                        ['nvprof', './main_' + version + '_nvcc'] + test_case.options, err=True).decode('utf-8')
                 else:
                     buf = pipe_read(['nvprof', test_case.command] +
                                     test_case.options, err=True).decode('utf-8')
@@ -305,10 +305,6 @@ def bench(test_cases):
                             elif len(columns) >= 7 and columns[6].find(kernel) != -1:
                                 find = True
                                 time = columns[1]
-                        elif test_case.name == 'minimod':
-                            if len(columns) > 0 and columns[0] == 'Time' and columns[1] == 'kernel:':
-                                find = True
-                                time = columns[2] + 's'
                         elif columns[0] == 'GPU' and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
                             find = True
                             time = columns[3]

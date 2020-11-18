@@ -157,15 +157,15 @@ quicksilver_test_cases = [TestCase(name='quicksilver',
                                              '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
                                              'c43974e2327ff69fb48fb814f6cffc66953312ce'],
                                    version_names=['origin', 'function inlining', 'register reuse']),
-                          #TestCase(name='quicksilver',
-                          #         path='./GPA-Benchmark/Quicksilver/src',
-                          #         command='./qs',
-                          #         options=['-N', '500'],
-                          #         kernels=['cycleTracking_Kernel'],
-                          #         versions=['9ed5d6edb68dfaf6da7801df831f69a5425788f4',
-                          #                   '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
-                          #                   'c43974e2327ff69fb48fb814f6cffc66953312ce'],
-                          #         version_names=['origin', 'function inlining', 'register reuse'])
+                          TestCase(name='quicksilver',
+                                   path='./GPA-Benchmark/Quicksilver/src',
+                                   command='./qs',
+                                   options=['-N', '500'],
+                                   kernels=['cycleTracking_Kernel'],
+                                   versions=['9ed5d6edb68dfaf6da7801df831f69a5425788f4',
+                                             '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
+                                             'c43974e2327ff69fb48fb814f6cffc66953312ce'],
+                                   version_names=['origin', 'function inlining', 'register reuse'])
                           ]
 pelec_test_cases = [TestCase(name='pelec',
                              path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
@@ -175,14 +175,14 @@ pelec_test_cases = [TestCase(name='pelec',
                              versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
                                        'f125d78e327755c90154e26eea7076a4c1cb3832'],
                              version_names=['origin', 'block increase']),
-                    #TestCase(name='pelec',
-                    #         path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
-                    #         command='./PeleC3d.gnu.CUDA.ex',
-                    #         options=['./inputs_ex', 'max_step', '500'],
-                    #         kernels=['react_state'],
-                    #         versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
-                    #                   'f125d78e327755c90154e26eea7076a4c1cb3832'],
-                    #         version_names=['origin', 'block increase'])
+                    TestCase(name='pelec',
+                             path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
+                             command='./PeleC3d.gnu.CUDA.ex',
+                             options=['./inputs_ex', 'max_step', '500'],
+                             kernels=['react_state'],
+                             versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
+                                       'f125d78e327755c90154e26eea7076a4c1cb3832'],
+                             version_names=['origin', 'block increase'])
                     ]
 exatensor_test_cases = [TestCase(name='exatensor',
                                  path='./GPA-Benchmark/ExaTENSOR/exatensor',
@@ -362,7 +362,9 @@ def bench(test_cases):
                     nxt_times_np = np.array(nxt_times)
                     cur_times_np = np.array(cur_times)
                     cur_time = np.mean(cur_times_np)
+                    cur_time_var = np.std(cur_times_np)
                     nxt_time = np.mean(nxt_times_np)
+                    nxt_time_var = np.std(nxt_times_np)
                     speedups = cur_times_np / nxt_times_np
                     speedup_avg = round(np.mean(speedups), 2)
                     speedup_var = round(np.std(speedups), 2)
@@ -371,17 +373,25 @@ def bench(test_cases):
                     if unit == 'us':
                         nxt_time_unit = nxt_time * 1e6
                         cur_time_unit = cur_time * 1e6
+                        nxt_time_unit_var = nxt_time_var * 1e6
+                        cur_time_unit_var = cur_time_var * 1e6
                     elif unit == 'ms':
                         nxt_time_unit = nxt_time * 1e3
                         cur_time_unit = cur_time * 1e3
+                        nxt_time_unit_var = nxt_time_var * 1e3
+                        cur_time_unit_var = cur_time_var * 1e3
                     elif unit == 'ns':
                         nxt_time_unit = nxt_time * 1e9
                         cur_time_unit = cur_time * 1e9
+                        nxt_time_unit_var = nxt_time_var * 1e9
+                        cur_time_unit_var = cur_time_var * 1e9
                     else:
                         nxt_time_unit = nxt_time
                         cur_time_unit = cur_time
-                    print('{} {} ({:.3f}{}) vs {} ({:.3f}{}) : {}+-{}x speedup '.format(
-                        test_case.name, nxt_version, nxt_time_unit, unit, cur_version, cur_time_unit, unit, speedup_avg, speedup_var))
+                        nxt_time_unit_var = nxt_time_var
+                        cur_time_unit_var = cur_time_var
+                    print('{} {} ({:.3f}+-{:.3f}{}) vs {} ({:.3f}+-{:.3f}{}) : {}+-{}x speedup '.format(
+                        test_case.name, nxt_version, nxt_time_unit, nxt_time_unit_var, unit, cur_version, cur_time_unit, cur_time_unit_var, unit, speedup_avg, speedup_var))
                 cur_version = nxt_version
                 cur_times = nxt_times[:]
 

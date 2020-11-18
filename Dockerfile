@@ -20,16 +20,19 @@ RUN ln -s $SPACK_ROOT/share/spack/docker/entrypoint.bash \
 SHELL ["docker-shell"]
 ENTRYPOINT ["/bin/bash", "/staging/spack/share/spack/docker/entrypoint.bash"]
 
-RUN spack spec hpctoolkit
 RUN spack install --only dependencies hpctoolkit ^dyninst@master
+RUN spack install gcc@7.3.0
+RUN spack load gcc@7.3.0
+RUN which gcc
 
 RUN git clone --recursive https://github.com/Jokeren/GPA.git
 WORKDIR GPA
 RUN mkdir build
 RUN ./bin/install.sh $(pwd)/build $(spack find --path boost | tail -n 1 | cut -d ' ' -f 3 | sed 's,/*[^/]\+/*$,,')
-ENV PATH=$(pwd)/build/bin:${PATH}
 
 ENTRYPOINT []
 
 ENV CUDA_VISIBLE_DEVICES=0
-CMD git pull origin master && ./bin/bench.sh
+ENV PATH=$(pwd)/build/bin:${PATH}
+ENV PATH=$(pwd)/build/hpctoolkit/bin:${PATH}
+CMD git pull origin master && ./bin/bench.sh -m advise

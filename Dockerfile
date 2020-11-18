@@ -35,4 +35,4 @@ ENTRYPOINT []
 ENV CUDA_VISIBLE_DEVICES=0
 ENV PATH=$(pwd)/build/bin:${PATH}
 ENV PATH=$(pwd)/build/hpctoolkit/bin:${PATH}
-CMD git pull origin master && ./bin/bench.sh -m advise
+CMD git pull origin master && ./bin/bench.sh -m bench && ./bin/bench.sh -m advise

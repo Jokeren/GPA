@@ -165,7 +165,7 @@ quicksilver_test_cases = [TestCase(name='quicksilver',
                                    versions=['9ed5d6edb68dfaf6da7801df831f69a5425788f4',
                                              '6001ea38e9d3bda6d3946c54b87d08fc51f17224',
                                              'c43974e2327ff69fb48fb814f6cffc66953312ce'],
-                                   version_names=['origin', 'function inlining', 'register reuse'])
+                                   version_names=['origin large', 'function inlining large', 'register reuse large'])
                           ]
 pelec_test_cases = [TestCase(name='pelec',
                              path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
@@ -182,7 +182,7 @@ pelec_test_cases = [TestCase(name='pelec',
                              kernels=['react_state'],
                              versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
                                        'f125d78e327755c90154e26eea7076a4c1cb3832'],
-                             version_names=['origin', 'block increase'])
+                             version_names=['origin large', 'block increase large'])
                     ]
 exatensor_test_cases = [TestCase(name='exatensor',
                                  path='./GPA-Benchmark/ExaTENSOR/exatensor',

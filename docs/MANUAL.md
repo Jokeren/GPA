@@ -1,12 +1,12 @@
 # An introduction to gpa.advice
 
-gpa.advice is generated under `gpa-database` for each benchmark. Currently, we provide a text format report and use hpcviewer to visualize blames on individual lines of GPU kernels with its CPU calling context.
+gpa.advice is generated under `gpa-database` for each benchmark. Currently, we provide a text format report and use hpcviewer to visualize blame for instruction stalls on individual lines of GPU kernels with its CPU calling context.
 
 ## Format
 
 ![GPA report](https://github.com/Jokeren/GPA/blob/master/docs/report.png)
 
-The above figure shows a dissection of a GPA report of the ExaTensor example. GPA ranks GPU kernels based on their running time. For each GPU kernel, GPA groups optimization suggestions into *Code Optimizers*, *Parallel Optimizers*, and *Binary Optimizers* sections. Their corresponding estimate speedup determines the order of suggestions in each section. For each suggestion, GPA lists several hot codes and their context and provides hints about transforming the code to estimate speedups.
+The figure above shows an annotated GPA report for ExaTensor. GPA ranks GPU kernels based on their running time. For each GPU kernel, GPA groups optimization suggestions into *Code Optimizers*, *Parallel Optimizers*, and *Binary Optimizers* sections. Their corresponding estimated speedup determines the order of suggestions in each section. For each suggestion, GPA lists several hot codes and their context and provides hints about how to transform the code to achieve the estimated speedup.
 
 ## Benchmarks
 
@@ -18,7 +18,7 @@ The above figure shows a dissection of a GPA report of the ExaTensor example. GP
  - **Section**: Code Optimizer
  - **Description**:
  
-The #1 GPUWarpBalance optimizer suggests removing synchronizations on several lines. We remove the synchronization on Line 35 and Line 39 and remove the branch condition on Line 32 to mitigate the synchronization on Line 43, which contributes to 1.15$\times$ speedup as projected. Due to the program's constraint, other synchronizations cannot be removed.
+The #1 GPUWarpBalance optimizer suggests removing synchronizations on several lines. We remove the synchronization on Line 35 and Line 39 and remove the branch condition on Line 32 to mitigate the synchronization on Line 43, which contributes to 1.15x speedup as projected. Due to the program's constraint, other synchronizations cannot be removed.
 
  - **Kernel**: `bpnn_layerforward_CUDA`
  - **Version**: opt1
@@ -198,8 +198,8 @@ The #1 GPUWarpBalance optimizer shows a list of expansive synchronization instru
  
 The #1 GPUCodeReorder optimizer suggests reordering a global memory read in a loop of the pathfinder benchmark. The estimated speedup is 30% higher than we achieved because instructions after synchronizations depend on the results before synchronizations. Therefore, the instructions we can use to hide latency are limited in a fine-grained scope in which the distance between the dependent instruction pairs is short no matter how we arrange instructions.
 
-## Visualization of instruction blames
+## Visualization of instruction blame
 
-Using `hpcviewer gpu-database` command opens up a GUI that presents the profile view of the execution, where you can click the *flame* button to drill down the hot code and view instruction blames' source and destination. We plan to integrate the advice report into the GUI in the near future.
+Using `hpcviewer gpu-database` command opens up a GUI that presents the profile view of the execution, where you can click the *flame* button to drill down the hot code and view instruction stall blame sources and destinations. We plan to integrate the advice report into the GUI in the near future.
 
 ![GPA gui](https://github.com/Jokeren/GPA/blob/master/docs/gui.png)

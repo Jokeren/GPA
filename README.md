@@ -13,7 +13,7 @@ git clone --recursive git@github.com:Jokeren/GPA.git && cd GPA
 ./bin/bench.sh rodinia/bfs
 ```
 
-## Documentations
+## Documentation
 
 - [Installation Guide](https://github.com/Jokeren/GPA/blob/master/INSTALL.md)
 - [User's Guide](https://github.com/Jokeren/GPA/tree/master/docs/MANUAL.md)

@@ -9,7 +9,7 @@ RUN apt-get -y install curl wget git python python3 python3-pip gfortran
 RUN pip3 install numpy
 
 WORKDIR /staging
-RUN git clone https://github.com/spack/spack.git && cd spack && git checkout fafff0c6c0142e62e0f6b65b1d53ea58feb7fc7a
+RUN git clone https://github.com/Jokeren/spack.git && cd spack && git pull origin && git checkout 58a919d1677e0b172ec250b8dd84a1eb32efa366
 ENV SPACK_ROOT=/staging/spack
 RUN ln -s $SPACK_ROOT/share/spack/docker/entrypoint.bash \
           /usr/local/bin/docker-shell \
@@ -20,7 +20,8 @@ RUN ln -s $SPACK_ROOT/share/spack/docker/entrypoint.bash \
 SHELL ["docker-shell"]
 ENTRYPOINT ["/bin/bash", "/staging/spack/share/spack/docker/entrypoint.bash"]
 
-RUN spack install --only dependencies hpctoolkit ^dyninst@master
+RUN spack spec dyninst@cgo
+RUN spack install --only dependencies hpctoolkit ^dyninst@cgo ^elfutils
 RUN spack install gcc@7.3.0
 RUN spack load gcc@7.3.0
 RUN which gcc

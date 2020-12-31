@@ -56,5 +56,5 @@ make install -j8
 echo "Install in "$DIR"/hpctoolkit"
 
 cd $SOURCE_DIR
-cp -rf ./bin $DIR/bin
+cp -rf ./bin $DIR
 export PATH=$DIR/bin:${PATH}

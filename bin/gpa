@@ -8,6 +8,8 @@ Usage:
     -j <cpu-threads>
     number of analysis threads
     -h help
+    -arch <gpu-arch>
+    default V100 
     -v output logs in gpa.log
 EOF
   exit 0
@@ -28,6 +30,10 @@ do
       usage
       exit
       ;;
+    -arch)
+      export GPA_ARCH=$1
+      shift
+      ;;
     * )
       set -- "$arg" "$@"
       break
@@ -43,9 +49,14 @@ if [ -z "$GPA_EXEC" ]; then
   exit
 fi
 
-if [ -z "$GVPROF_THREADS" ]
+if [ -z "$GPA_THREADS" ]
 then
   export GPA_THREADS=1
+fi
+
+if [ -z "$GPA_ARCH" ]
+then
+  export GPA_ARCH=V100
 fi
 
 if [ ! -z "$GPA_VERBOSE" ]; then
@@ -62,6 +73,7 @@ rm -rf $DATABASE
 
 echo "Profiling: collect performance metrics"
 
+hpcrun -e gpu=nvidia -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
 hpcrun -e gpu=nvidia,pc -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
 
 echo "Parsing: parse CPU and GPU binaries"
@@ -69,7 +81,7 @@ hpcstruct --gpucfg yes -j $GPA_THREADS $MEASUREMENTS &>>$GPA_REDIRECT
 hpcstruct -j $GPA_THREADS $GPA_EXEC -o $GPA_EXEC".hpcstruct" &>>$GPA_REDIRECT
 
 echo "Analyzing: match metrics with advice"
-hpcprof -S $GPA_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &>>$GPA_REDIRECT
+hpcprof --gpu-arch $GPA_ARCH -S $GPA_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &>>$GPA_REDIRECT
 
 echo "Output advice in "$DATABASE"/gpa.advice"
 

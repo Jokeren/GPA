@@ -7,9 +7,11 @@ Usage:
     profiling options:
     -j <cpu-threads>
     number of analysis threads
+    -inst
+    instrumentation based profiling
     -h help
     -arch <gpu-arch>
-    default V100 
+    default: V100 
     -v output logs in gpa.log
 EOF
   exit 0
@@ -29,6 +31,9 @@ do
     -h)
       usage
       exit
+      ;;
+    -inst)
+      export GPA_INST=1
       ;;
     -arch)
       export GPA_ARCH=$1
@@ -71,10 +76,19 @@ echo "Make sure "$MEASUREMENTS" and "$DATABASE" is clean"
 rm -rf $MEASUREMENTS
 rm -rf $DATABASE
 
-echo "Profiling: collect performance metrics"
+echo "Profiling: collect pc sampling performance metrics"
 
 hpcrun -e gpu=nvidia -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
 hpcrun -e gpu=nvidia,pc -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
+
+if [ ! -z "$GPA_INST" ]
+then
+  echo "Profiling: collect instrumentation-based performance metrics"
+  hpcrun -e gpu=nvidia,inst -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
+  hpcrun -e gpu=nvidia,inst_branch -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
+  hpcrun -e gpu=nvidia,inst_global -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
+  hpcrun -e gpu=nvidia,inst_shared -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
+fi
 
 echo "Parsing: parse CPU and GPU binaries"
 hpcstruct --gpucfg yes -j $GPA_THREADS $MEASUREMENTS &>>$GPA_REDIRECT

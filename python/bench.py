@@ -237,12 +237,14 @@ def cleanup(target=None):
     if target is None:
         pipe_read(['make', 'clean'])
         pipe_read(['make', '-j8'])
+        pipe_read(['rm', '-rf', '*.qdrep'])
     else:
         pipe_read(['make', target, 'clean'])
         pipe_read(['make', target, '-j8'])
+        pipe_read(['rm', '-rf', '*.qdrep'])
 
 
-def bench(test_cases):
+def bench(test_cases, tool):
     path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
     for test_case in test_cases:
         kernel_times = dict()
@@ -282,11 +284,23 @@ def bench(test_cases):
                     buf = pipe_read([test_case.command] +
                                     test_case.options).decode('utf-8')
                 elif test_case.name == 'minimod':
-                    buf = pipe_read(
-                        ['nvprof', './main_' + version + '_nvcc'] + test_case.options, err=True).decode('utf-8')
+                    if tool == 'nvprof':
+                        buf = pipe_read(
+                            ['nvprof', './main_' + version + '_nvcc'] + test_case.options, err=True).decode('utf-8')
+                    else:
+                        buf = pipe_read(
+                            ['nsys', 'profile', './main_' + version + '_nvcc'] + test_case.options)
+                        buf = pipe_read(
+                            ['nsys', 'stats', './report1.qdrep']).decode('utf-8')
                 else:
-                    buf = pipe_read(['nvprof', test_case.command] +
-                                    test_case.options, err=True).decode('utf-8')
+                    if tool == 'nvprof':
+                        buf = pipe_read(['nvprof', test_case.command] +
+                                        test_case.options, err=True).decode('utf-8')
+                    else:
+                        buf = pipe_read(
+                            ['nsys', 'profile', test_case.command] + test_case.options)
+                        buf = pipe_read(
+                            ['nsys', 'stats', './report1.qdrep']).decode('utf-8')
 
                 for kernel in test_case.kernels:
                     entries = buf.splitlines()
@@ -294,23 +308,27 @@ def bench(test_cases):
                         columns = entry.split()
                         find = False
                         time = 0
+                        if len(columns) == 0:
+                            continue
                         if test_case.name == 'quicksilver':
-                            if len(columns) > 0 and columns[0] == kernel:
+                            if columns[0] == kernel:
                                 find = True
                                 time = columns[2] + 'ms'
                         elif test_case.name == 'pelec':
-                            if columns[0] == 'GPU' and columns[8].find(kernel) != -1:
+                            if columns[0] == 'GPU' and len(columns) >= 9 and columns[8].find(kernel) != -1:
                                 find = True
                                 time = columns[3]
                             elif len(columns) >= 7 and columns[6].find(kernel) != -1:
                                 find = True
                                 time = columns[1]
-                        elif columns[0] == 'GPU' and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
+                        elif columns[0] == 'GPU' and len(columns) >= 9 and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
                             find = True
                             time = columns[3]
                         elif len(columns) >= 7 and (columns[6].find(kernel + '(') != -1 or columns[6] == kernel):
                             find = True
                             time = columns[1]
+                        if tool == 'nsys':
+                            time = str(time).replace(',', '') + 'ns'
                         if find is True:
                             if kernel in kernel_times:
                                 if version_name in kernel_times[kernel]:
@@ -458,9 +476,12 @@ parser.add_argument('-d', '--debug', action='store_true',
                     default=False, help='print debug message')
 parser.add_argument('-v', '--verbose', action='store_true',
                     default=False, help='print execution message')
+parser.add_argument('-i', '--iterations', default=10)
 parser.add_argument(
     '-m', '--mode', choices=['bench', 'advise', 'show'], default='bench', help='choose a mode')
 parser.add_argument('-c', '--case', help='choose a test case')
+parser.add_argument(
+    '-t', '--tool', choices=['nsys', 'nvprof'], default='nsys', help='choose a profiling tool')
 args = parser.parse_args()
 
 if args.debug:
@@ -468,6 +489,8 @@ if args.debug:
 
 if args.verbose:
     VERBOSE = True
+
+ITERS = int(args.iterations)
 
 case_name = ''
 if args.case is not None:
@@ -490,4 +513,4 @@ elif args.mode == 'advise':
     advise(test_cases)
 else:
     test_cases = setup(case_name)
-    bench(test_cases)
+    bench(test_cases, args.tool)

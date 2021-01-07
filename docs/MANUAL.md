@@ -18,7 +18,7 @@ The figure above shows an annotated GPA report for ExaTensor. GPA ranks GPU kern
  - **Section**: Code Optimizer
  - **Description**:
  
-The #1 *GPUWarpBalance* optimizer suggests removing synchronizations on several lines. We remove the synchronization on Line 35 and Line 39 and remove the branch condition on Line 32 to mitigate the synchronization on Line 43, which contributes to 1.15x speedup as projected. Due to the program's constraint, other synchronizations cannot be removed.
+The #1 *GPUWarpBalance* optimizer suggests removing synchronizations on several lines. We remove the synchronization on Line 35 and Line 39 and remove the branch condition on Line 32 to mitigate the synchronization on Line 43, and we also remove the synchronization on Line 72, which contribute to 1.15x speedup as projected. Due to the program's constraint, other synchronizations cannot be removed.
 
  - **Kernel**: `bpnn_layerforward_CUDA`
  - **Version**: opt1

@@ -1,6 +1,7 @@
 from collections import namedtuple
 import subprocess
 import os
+import re
 import sys
 import pprint
 import shutil
@@ -237,11 +238,9 @@ def cleanup(target=None):
     if target is None:
         pipe_read(['make', 'clean'])
         pipe_read(['make', '-j8'])
-        pipe_read(['rm', '-rf', '*.qdrep'])
     else:
         pipe_read(['make', target, 'clean'])
         pipe_read(['make', target, '-j8'])
-        pipe_read(['rm', '-rf', '*.qdrep'])
 
 
 def bench(test_cases, tool):
@@ -291,7 +290,7 @@ def bench(test_cases, tool):
                         buf = pipe_read(
                             ['nsys', 'profile', './main_' + version + '_nvcc'] + test_case.options)
                         buf = pipe_read(
-                            ['nsys', 'stats', './report1.qdrep']).decode('utf-8')
+                            ['nsys', 'stats', './report' + str(i+1) + '.qdrep']).decode('utf-8')
                 else:
                     if tool == 'nvprof':
                         buf = pipe_read(['nvprof', test_case.command] +
@@ -300,7 +299,7 @@ def bench(test_cases, tool):
                         buf = pipe_read(
                             ['nsys', 'profile', test_case.command] + test_case.options)
                         buf = pipe_read(
-                            ['nsys', 'stats', './report1.qdrep']).decode('utf-8')
+                            ['nsys', 'stats', './report' + str(i+1) + '.qdrep']).decode('utf-8')
 
                 for kernel in test_case.kernels:
                     entries = buf.splitlines()
@@ -437,6 +436,11 @@ def advise(test_cases):
             else:
                 cleanup()
 
+            if version == '':
+                shutil.rmtree('gpa-database', ignore_errors=True)
+            else:
+                shutil.rmtree('gpa-database-' + version_name, ignore_errors=True)
+
             if VERBOSE:
                 print('Warmup ' + test_case.name + ' ' + version_name)
             for _ in range(1):
@@ -446,11 +450,11 @@ def advise(test_cases):
                 print('Profile ' + test_case.name + ' ' + version_name)
 
             if DEBUG:
-                pipe_read(['gpa', '-v', test_case.command] +
+                pipe_read(['gpa', '-inst', '-arch', 'A100', '-v', test_case.command] +
                           test_case.options)
                 pipe_read(['cat', './gpa.log'])
             else:
-                pipe_read(['gpa', test_case.command] +
+                pipe_read(['gpa', '-j', '8', '-inst', '-arch', 'A100', test_case.command] +
                           test_case.options)
 
             if version == '':

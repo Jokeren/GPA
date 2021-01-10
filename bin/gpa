@@ -78,7 +78,7 @@ rm -rf $DATABASE
 
 echo "Profiling: collect pc sampling performance metrics"
 
-hpcrun -e gpu=nvidia,pc -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>>$GPA_REDIRECT
+hpcrun -e gpu=nvidia,pc -o $MEASUREMENTS $GPA_EXEC $GPA_ARGS &>$GPA_REDIRECT
 
 if [ ! -z "$GPA_INST" ]
 then

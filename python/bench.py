@@ -11,6 +11,7 @@ import argparse
 ITERS = 10
 DEBUG = False
 VERBOSE = False
+FAST = False
 
 TestCase = namedtuple(
     'TestCase', ['name', 'path', 'command', 'options', 'kernels', 'versions', 'version_names'])
@@ -409,7 +410,7 @@ def bench(test_cases, tool):
                 cur_times = nxt_times[:]
 
 
-def advise(test_cases):
+def advise(test_cases, arch):
     path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
     for test_case in test_cases:
         for i in range(len(test_case.versions)):
@@ -439,7 +440,8 @@ def advise(test_cases):
             if version == '':
                 shutil.rmtree('gpa-database', ignore_errors=True)
             else:
-                shutil.rmtree('gpa-database-' + version_name, ignore_errors=True)
+                shutil.rmtree('gpa-database-' + version_name,
+                              ignore_errors=True)
 
             if VERBOSE:
                 print('Warmup ' + test_case.name + ' ' + version_name)
@@ -449,13 +451,15 @@ def advise(test_cases):
             if VERBOSE:
                 print('Profile ' + test_case.name + ' ' + version_name)
 
+            opts = ['gpa', '-j', '8', '-arch', arch]
+
             if DEBUG:
-                pipe_read(['gpa', '-inst', '-arch', 'A100', '-v', test_case.command] +
-                          test_case.options)
-                pipe_read(['cat', './gpa.log'])
-            else:
-                pipe_read(['gpa', '-j', '8', '-inst', '-arch', 'A100', test_case.command] +
-                          test_case.options)
+                opts.append('-v')
+
+            if FAST is False:
+                opts.append('-inst')
+
+            pipe_read(opts + [test_case.command] + test_case.options)
 
             if version == '':
                 # original version, do nothing
@@ -480,6 +484,10 @@ parser.add_argument('-d', '--debug', action='store_true',
                     default=False, help='print debug message')
 parser.add_argument('-v', '--verbose', action='store_true',
                     default=False, help='print execution message')
+parser.add_argument('-f', '--fast', action='store_true',
+                    default=False, help='pc sampling only')
+parser.add_argument(
+    '-a', '--arch', choices=['A100', 'V100'], default='V100', help='choose a gpu architecture')
 parser.add_argument('-i', '--iterations', default=10)
 parser.add_argument(
     '-m', '--mode', choices=['bench', 'advise', 'show'], default='bench', help='choose a mode')
@@ -493,6 +501,9 @@ if args.debug:
 
 if args.verbose:
     VERBOSE = True
+
+if args.fast:
+    FAST = True
 
 ITERS = int(args.iterations)
 
@@ -514,7 +525,7 @@ if args.mode == 'show':
     pp.pprint(pelec_test_cases)
 elif args.mode == 'advise':
     test_cases = setup(case_name)
-    advise(test_cases)
+    advise(test_cases, args.arch)
 else:
     test_cases = setup(case_name)
     bench(test_cases, args.tool)

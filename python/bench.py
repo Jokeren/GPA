@@ -453,7 +453,7 @@ def advise(test_cases, arch):
 
             opts = ['gpa', '-j', '8', '-arch', arch]
 
-            if DEBUG:
+            if VERBOSE or DEBUG:
                 opts.append('-v')
 
             if FAST is False:

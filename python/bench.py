@@ -191,11 +191,11 @@ exatensor_test_cases = [TestCase(name='exatensor',
                                  command='./main',
                                  options=[],
                                  kernels=['tensor_transpose'],
-                                 versions=['', '-opt1', '-opt2'],
-                                 version_names=['origin', 'strength reduction', 'memory transaction reduction'])]
+                                 versions=['', '-opt1', '-opt2', '-opt3', '-opt4'],
+                                 version_names=['origin', 'strength reduction', 'memory transaction reduction', 'asynchoronus memory copy', 'templatization'])]
 
 
-def setup(case_name):
+def setup(case_name, arch):
     ret = []
     if case_name.find('rodinia') != -1:
         if case_name.find('/') != -1:
@@ -209,6 +209,12 @@ def setup(case_name):
         ret = quicksilver_test_cases
     elif case_name == 'exatensor':
         ret = exatensor_test_cases
+        if arch == 'V100':
+            # Remove opt3 and opt4
+            ret[0].versions.pop()
+            ret[0].version_names.pop()
+            ret[0].versions.pop()
+            ret[0].version_names.pop()
     elif case_name == 'pelec':
         ret = pelec_test_cases
     elif case_name == 'minimod':
@@ -324,6 +330,12 @@ def bench(test_cases, tool):
                         elif columns[0] == 'GPU' and len(columns) >= 9 and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
                             find = True
                             time = columns[3]
+                        elif test_case.name == 'exatensor':
+                            # template function name
+                            if (len(columns) >= 7 and columns[6].find(kernel) != -1) or \
+                               (len(columns) >= 8 and columns[7].find(kernel) != -1):
+                                find = True
+                                time = columns[1]
                         elif len(columns) >= 7 and (columns[6].find(kernel + '(') != -1 or columns[6] == kernel):
                             find = True
                             time = columns[1]
@@ -524,8 +536,8 @@ if args.mode == 'show':
     pp.pprint('pelec')
     pp.pprint(pelec_test_cases)
 elif args.mode == 'advise':
-    test_cases = setup(case_name)
+    test_cases = setup(case_name, args.arch)
     advise(test_cases, args.arch)
 else:
-    test_cases = setup(case_name)
+    test_cases = setup(case_name, args.arch)
     bench(test_cases, args.tool)

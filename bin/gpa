@@ -90,8 +90,8 @@ then
 fi
 
 echo "Parsing: parse CPU and GPU binaries"
-hpcstruct --gpucfg yes -j $GPA_THREADS $MEASUREMENTS &>>$GPA_REDIRECT
-hpcstruct -j $GPA_THREADS $GPA_EXEC -o $GPA_EXEC".hpcstruct" &>>$GPA_REDIRECT
+hpcstruct --gpu-size 100000 --gpucfg yes -j $GPA_THREADS $MEASUREMENTS &>>$GPA_REDIRECT
+hpcstruct --gpu-size 100000 -j $GPA_THREADS $GPA_EXEC -o $GPA_EXEC".hpcstruct" &>>$GPA_REDIRECT
 
 echo "Analyzing: match metrics with advice"
 hpcprof --gpu-arch $GPA_ARCH -S $GPA_EXEC".hpcstruct" -o $DATABASE $MEASUREMENTS &>>$GPA_REDIRECT

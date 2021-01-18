@@ -174,9 +174,9 @@ pelec_test_cases = [TestCase(name='pelec',
                              command='./PeleC3d.gnu.CUDA.ex',
                              options=['./inputs_ex'],
                              kernels=['react_state'],
-                             versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b',
+                             versions=['3159994b8ec7fe821cea93b042f89a8837ab6c2b'
                                        'f125d78e327755c90154e26eea7076a4c1cb3832'],
-                             version_names=['origin', 'block increase']),
+                             version_names=['origin', 'block increase small']),
                     TestCase(name='pelec',
                              path='./GPA-Benchmark/PeleC/ExecCpp/RegTests/PMF',
                              command='./PeleC3d.gnu.CUDA.ex',
@@ -250,7 +250,7 @@ def cleanup(target=None):
         pipe_read(['make', target, '-j8'])
 
 
-def bench(test_cases, tool):
+def bench(test_cases, tool, arch):
     path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
     for test_case in test_cases:
         kernel_times = dict()
@@ -278,6 +278,11 @@ def bench(test_cases, tool):
 
             if test_case.name == 'minimod':
                 cleanup('TARGET=' + version)
+            elif test_case.name == "pelec":
+                if arch == 'V100':
+                    cleanup('CUDA_ARCH=70')
+                elif arch == 'A100':
+                    cleanup('CUDA_ARCH=80')
             else:
                 cleanup()
 
@@ -446,6 +451,11 @@ def advise(test_cases, arch):
 
             if test_case.name == 'minimod':
                 cleanup('TARGET=' + version)
+            elif test_case.name == "pelec":
+                if arch == 'V100':
+                    cleanup('CUDA_ARCH=70')
+                elif arch == 'A100':
+                    cleanup('CUDA_ARCH=80')
             else:
                 cleanup()
 
@@ -540,4 +550,4 @@ elif args.mode == 'advise':
     advise(test_cases, args.arch)
 else:
     test_cases = setup(case_name, args.arch)
-    bench(test_cases, args.tool)
+    bench(test_cases, args.tool, args.arch)

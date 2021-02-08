@@ -5,6 +5,7 @@ import re
 import sys
 import pprint
 import shutil
+import time
 import numpy as np
 import argparse
 
@@ -290,7 +291,12 @@ def bench(test_cases, tool, arch):
                 print('Profile ' + test_case.name + ' ' +
                       version_name + ' ' + str(test_case.options))
 
+            time_start = time.time()
             for i in range(ITERS):
+                if tool == 'none':
+                    pipe_read([test_case.command] + test_case.options).decode('utf-8')
+                    continue
+
                 if test_case.name == 'quicksilver':
                     buf = pipe_read([test_case.command] +
                                     test_case.options).decode('utf-8')
@@ -318,45 +324,49 @@ def bench(test_cases, tool, arch):
                     for entry in entries:
                         columns = entry.split()
                         find = False
-                        time = 0
+                        kernel_time = 0
                         if len(columns) == 0:
                             continue
                         if test_case.name == 'quicksilver':
                             if columns[0] == kernel:
                                 find = True
-                                time = columns[2] + 'ms'
+                                kernel_time = columns[2] + 'ms'
                         elif test_case.name == 'pelec':
                             if columns[0] == 'GPU' and len(columns) >= 9 and columns[8].find(kernel) != -1:
                                 find = True
-                                time = columns[3]
+                                kernel_time = columns[3]
                             elif len(columns) >= 7 and columns[6].find(kernel) != -1:
                                 find = True
-                                time = columns[1]
+                                kernel_time = columns[1]
                         elif columns[0] == 'GPU' and len(columns) >= 9 and (columns[8].find(kernel + '(') != -1 or columns[8] == kernel):
                             find = True
-                            time = columns[3]
+                            kernel_time = columns[3]
                         elif test_case.name == 'exatensor':
                             # template function name
                             if (len(columns) >= 7 and columns[6].find(kernel) != -1) or \
                                (len(columns) >= 8 and columns[7].find(kernel) != -1):
                                 find = True
-                                time = columns[1]
+                                kernel_time = columns[1]
                         elif len(columns) >= 7 and (columns[6].find(kernel + '(') != -1 or columns[6] == kernel):
                             find = True
-                            time = columns[1]
+                            kernel_time = columns[1]
                         if tool == 'nsys':
-                            time = str(time).replace(',', '') + 'ns'
+                            kernel_time = str(kernel_time).replace(',', '') + 'ns'
                         if find is True:
                             if kernel in kernel_times:
                                 if version_name in kernel_times[kernel]:
                                     kernel_times[kernel][version_name].append(
-                                        time)
+                                        kernel_time)
                                 else:
-                                    kernel_times[kernel][version_name] = [time]
+                                    kernel_times[kernel][version_name] = [kernel_time]
                             else:
                                 kernel_times[kernel] = dict()
-                                kernel_times[kernel][version_name] = [time]
+                                kernel_times[kernel][version_name] = [kernel_time]
                             break
+
+            time_end = time.time()
+            if VERBOSE is True:
+                print("elapsed: {}".format(time_end - time_start))
 
             # back to top dir
             os.chdir(path)
@@ -473,7 +483,7 @@ def advise(test_cases, arch):
             if VERBOSE:
                 print('Profile ' + test_case.name + ' ' + version_name)
 
-            opts = ['gpa', '-j', '8', '-arch', arch]
+            opts = ['gpa', '-j', '32', '-arch', arch]
 
             if VERBOSE or DEBUG:
                 opts.append('-v')
@@ -481,7 +491,15 @@ def advise(test_cases, arch):
             if FAST is False:
                 opts.append('-inst')
 
-            pipe_read(opts + [test_case.command] + test_case.options)
+            time_start = time.time()
+            if test_case.name == 'minimod':
+                pipe_read(opts + ['./main_' + version + '_nvcc'] + test_case.options)
+            else:
+                pipe_read(opts + [test_case.command] + test_case.options)
+            time_end = time.time()
+            
+            if VERBOSE:
+                print("elapsed: {}".format(time_end - time_start))
 
             if version == '':
                 # original version, do nothing
@@ -515,7 +533,7 @@ parser.add_argument(
     '-m', '--mode', choices=['bench', 'advise', 'show'], default='bench', help='choose a mode')
 parser.add_argument('-c', '--case', help='choose a test case')
 parser.add_argument(
-    '-t', '--tool', choices=['nsys', 'nvprof'], default='nsys', help='choose a profiling tool')
+    '-t', '--tool', choices=['nsys', 'nvprof', 'none'], default='nsys', help='choose a profiling tool')
 args = parser.parse_args()
 
 if args.debug:

@@ -35,18 +35,18 @@ http://hpctoolkit.org/download/hpcviewer/
 Add following lines into your `.bashrc` file and source it.
 
 ```bash
-export HPCTOOLKIT=/path/to/hpctoolkit
+export HPCTOOLKIT=/path/to/hpctoolkit/install
 export PATH=$HPCTOOLKIT/bin/:$PATH
+export GPA=/path/to/gpa/install
+export PATH=$GPA/bin/:$PATH
 ```
 
 ## Test
 
 ```bash
-cd ./GPA-Benchmark/ExaTENSOR
+cd ./GPA-Benchmark/ExaTENSOR/exatensor-opt1
 make
-hpcrun -e gpu=nvidia,pc ./main
-hpcstruct --gpucfg yes hpctoolkit-main-measurement
-hpcstruct ./main
-hpcprof -S main.hpcstruct hpctoolkit-main-measurement
-hpcviewer hpctoolkit-main-database
+gpa ./main
+less ./gpa-database/gpa.advice
+hpcviewer gpa-database
 ```

@@ -18,3 +18,7 @@ git clone --recursive git@github.com:Jokeren/GPA.git && cd GPA
 - [Installation Guide](https://github.com/Jokeren/GPA/blob/master/INSTALL.md)
 - [User's Guide](https://github.com/Jokeren/GPA/tree/master/docs/MANUAL.md)
 - [Developer's Guide]
+
+## Papers
+
+- K. Zhou, X. Meng, R. Sai and J. Mellor-Crummey, "GPA: A GPU Performance Advisor Based on Instruction Sampling," *2021 IEEE/ACM International Symposium on Code Generation and Optimization* (CGO), Seoul, Korea (South), 2021, pp. 115-125, doi: 10.1109/CGO51591.2021.9370339.

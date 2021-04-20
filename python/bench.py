@@ -109,8 +109,8 @@ rodinia_test_cases = [
              command='./myocyte.out',
              options=['100', '100', '1'],
              kernels=['solver_2'],
-             versions=['', '-opt1', '-opt2'],
-             version_names=['origin', 'fast math', 'function spliting']),
+             versions=['', '-opt1', '-opt2', '-opt3'],
+             version_names=['origin', 'fast math', 'function spliting', 'memory coalesce']),
     TestCase(name='particlefilter',
              path='./GPA-Benchmark/rodinia/particlefilter',
              command='./particlefilter_float',
@@ -437,7 +437,7 @@ def bench(test_cases, tool, arch):
                 cur_times = nxt_times[:]
 
 
-def advise(test_cases, arch):
+def advise(test_cases, arch, origin):
     path = pipe_read(['pwd']).decode('utf-8').replace('\n', '')
     for test_case in test_cases:
         for i in range(len(test_case.versions)):
@@ -446,6 +446,8 @@ def advise(test_cases, arch):
             if version == '':
                 # original version, do nothing
                 os.chdir(test_case.path)
+            elif origin is True:
+                continue
             elif version.find('-opt') != -1:
                 # optimized version, change dir
                 os.chdir(test_case.path + version)
@@ -524,6 +526,8 @@ parser.add_argument('-d', '--debug', action='store_true',
                     default=False, help='print debug message')
 parser.add_argument('-v', '--verbose', action='store_true',
                     default=False, help='print execution message')
+parser.add_argument('-o', '--origin', action='store_true',
+                    default=False, help='profile origin versions only')
 parser.add_argument('-f', '--fast', action='store_true',
                     default=False, help='pc sampling only')
 parser.add_argument(
@@ -565,7 +569,7 @@ if args.mode == 'show':
     pp.pprint(pelec_test_cases)
 elif args.mode == 'advise':
     test_cases = setup(case_name, args.arch)
-    advise(test_cases, args.arch)
+    advise(test_cases, args.arch, args.origin)
 else:
     test_cases = setup(case_name, args.arch)
     bench(test_cases, args.tool, args.arch)

@@ -5,7 +5,7 @@ DIR=""
 SPACK_DIR=""
 
 if [ $# -eq 0 ]; then
-  DIR=$(`pwd`)/gpa
+  DIR=$(pwd)/gpa
 else
   if [ $# -eq 1 ]; then
     DIR=$1

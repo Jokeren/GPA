@@ -21,5 +21,5 @@ git clone --recursive https://github.com/Jokeren/GPA.git && cd GPA
 
 ## Papers
 
-- K. Zhou, X. Meng, R. Sai and J. Mellor-Crummey, "GPA: A GPU Performance Advisor Based on Instruction Sampling," *2021 IEEE/ACM International Symposium on Code Generation and Optimization* (CGO), Seoul, Korea (South), 2021, pp. 115-125, doi: 10.1109/CGO51591.2021.9370339.
 - K. Zhou, X. Meng, R. Sai, D. Grubisic and J. Mellor-Crummey, "An Automated Tool for Analysis and Tuning of GPU-accelerated Code in HPC Applications." *IEEE Transactions on Parallel and Distributed Systems* (TPDS) (2021).
+- K. Zhou, X. Meng, R. Sai and J. Mellor-Crummey, "GPA: A GPU Performance Advisor Based on Instruction Sampling," *2021 IEEE/ACM International Symposium on Code Generation and Optimization* (CGO), Seoul, Korea (South), 2021, pp. 115-125, doi: 10.1109/CGO51591.2021.9370339.

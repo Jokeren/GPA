@@ -35,7 +35,8 @@ if [ -z $SPACK_DIR ]; then
   source ${SPACK_ROOT}/share/spack/setup-env.sh
 
   # Install hpctoolkit dependencies
-  spack install --only dependencies hpctoolkit ^dyninst@master ^binutils@2.34
+  spack install --only dependencies hpctoolkit ^dyninst@master ^binutils@2.34+libiberty~nls 
+  spack install libmonitor@master+dlopen+hpctoolkit
 
   # Find spack dir
   B=$(spack find --path boost | tail -n 1 | cut -d ' ' -f 3)

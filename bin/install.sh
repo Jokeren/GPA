@@ -37,6 +37,7 @@ if [ -z $SPACK_DIR ]; then
   # Install hpctoolkit dependencies
   spack install --only dependencies hpctoolkit ^dyninst@master ^binutils@2.34+libiberty~nls 
   spack install libmonitor@master+dlopen+hpctoolkit
+  spack install mbedtls gotcha
 
   # Find spack dir
   B=$(spack find --path boost | tail -n 1 | cut -d ' ' -f 3)
@@ -44,6 +45,7 @@ if [ -z $SPACK_DIR ]; then
 fi
 
 CUDA_PATH=/usr/local/cuda/
+CUPTI_PATH=$CUDA_PATH/extras/CUPTI/
 
 # install hpctoolkit
 cd $SOURCE_DIR
@@ -51,7 +53,7 @@ cd hpctoolkit
 mkdir build
 cd build
 ../configure --prefix=$DIR/hpctoolkit --with-cuda=$CUDA_PATH \
-  --with-cupti=$CUDA_PATH --with-spack=$SPACK_DIR
+  --with-cupti=$CUPTI_PATH --with-spack=$SPACK_DIR
 make install -j8
 
 echo "Install in "$DIR"/hpctoolkit"
